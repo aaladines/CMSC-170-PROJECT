@@ -18,8 +18,6 @@ for crop in (
 ):
   CROPS.add(crop.lower())
 
-
-
 def filter_dataset():
   folder = Path(__file__).resolve().parent
   source = folder / "dataset.csv"
