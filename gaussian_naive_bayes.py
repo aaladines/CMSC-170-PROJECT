@@ -141,7 +141,7 @@ def evaluate_gnb(y_test, predictions):
     incorrect = false_positive + false_negative
     total = len(y_test)
 
-    accuracy = (correct / total) * 100 if total > 0 else 0.0
+    accuracy = (correct / total) if total > 0 else 0.0
     precision = (true_positive / (true_positive + false_positive)) if (true_positive + false_positive) > 0 else 0.0
     recall = (true_positive / (true_positive + false_negative)) if (true_positive + false_negative) > 0 else 0.0
     f1_score = (2 * precision * recall / (precision + recall)) if (precision + recall) > 0 else 0.0
@@ -222,14 +222,14 @@ def gaussian_naive_bayes():
             incorrect_list.append((data_no, actual_labels[i], predicted_labels[i]))
     
     incorrect = len(predicted_labels) - correct
-    accuracy = correct / len(predicted_labels) * 100
+    accuracy = correct / len(predicted_labels) 
 
     # printing the result
     print("GAUSSIAN NAIVE BAYES CLASSIFICATION RESULTS\n")
 
     print(f"Correct predictions: {correct} ")
     print(f"Incorrect predictions: {incorrect} ")
-    print(f"Classification Accuracy: {accuracy:.4f} %")
+    print(f"Classification Accuracy: {accuracy:.4f}")
     print(f"Precision: {precision:.4f}")
     print(f"Recall: {recall:.4f}")
     print(f"F1 Score: {f1_score:.4f}\n")

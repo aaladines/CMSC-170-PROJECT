@@ -34,9 +34,9 @@ from perceptron import (
 
 
 def run_pipeline():
-    print("==================================================================")
-    print("      CMSC 170 PROJECT: FOURCAST AGRICULTURAL YIELD PREDICTION    ")
-    print("==================================================================\n")
+    print("================================================================================")
+    print("          CMSC 170 PROJECT: FOURCAST AGRICULTURAL YIELD PREDICTION    ")
+    print("================================================================================\n")
 
     # Step 1: Data Preparation
     print("[1/4] Preparing dataset and generating dataset_prepared.csv...")
@@ -56,12 +56,12 @@ def run_pipeline():
         )
 
     # Step 2: Evaluate Gaussian Naive Bayes
-    print("[2/4] Running Gaussian Naive Bayes...")
+    print("[2/4] Running Gaussian Naive Bayes (k=1e-9)...")
     train_gnb, test_gnb, gnb_actuals = make_gnb_features(data_table)
     mean_var = calculate_mean_and_var(train_gnb["features"], train_gnb["labels"])
     priors = class_priors(mean_var)
     all_vars = np.concatenate([mean_var[0]["var"], mean_var[1]["var"]])
-    epsilon = 1 * all_vars.max()
+    epsilon = 1e-9 * all_vars.max()
     gnb_preds = predict_increaase_decrease(test_gnb["features"], mean_var, priors, epsilon)
     gnb_corr, gnb_inc, gnb_acc, gnb_prec, gnb_rec, gnb_f1 = evaluate_gnb(gnb_actuals, gnb_preds)
 
@@ -79,23 +79,23 @@ def run_pipeline():
 
     # Step 4: Evaluate Perceptron (learning_rate=0.01, max_epochs=100)
     print("[4/4] Running Perceptron (learning_rate=0.01, epochs=100)...")
-    p_feats, p_labels, p_sets = make_perceptron_features(data)
-    px_tr, px_te, py_tr, py_te = split_dataset(p_feats, p_labels, p_sets)
+    p_feats, p_labels, p_records = make_perceptron_features(data)
+    px_tr, px_te, py_tr, py_te, _ = split_dataset(p_feats, p_labels, p_records)
     px_tr_scaled, px_te_scaled = standardize_features(px_tr, px_te)
     p_weights, p_bias = train_perceptron(px_tr_scaled, py_tr, learning_rate=0.01, max_epochs=100)
     p_preds = predict_perceptron(px_te_scaled, p_weights, p_bias)
     p_acc, p_prec, p_rec, p_f1 = evaluate_perceptron(py_te, p_preds)
 
     # Step 5: Output Comparative Summary Table
-    print("\n=========================================================================")
-    print("                     COMPARATIVE MODEL RESULTS SUMMARY                   ")
-    print("=========================================================================")
-    print(f"{'Method / Model':<25} {'Accuracy (%)':<15} {'Precision':<12} {'Recall':<12} {'F1-Score':<12}")
-    print("-" * 75)
-    print(f"{'Gaussian Naive Bayes':<25} {gnb_acc:<15.4f} {gnb_prec:<12.4f} {gnb_rec:<12.4f} {gnb_f1:<12.4f}")
-    print(f"{'K-Nearest Neighbors (k=5)':<25} {knn_acc:<15.4f} {knn_prec:<12.4f} {knn_rec:<12.4f} {knn_f1:<12.4f}")
-    print(f"{'Perceptron (lr=0.01)':<25} {p_acc*100:<15.4f} {p_prec:<12.4f} {p_rec:<12.4f} {p_f1:<12.4f}")
-    print("=========================================================================\n")
+    print("\n=================================================================================")
+    print("                         COMPARATIVE MODEL RESULTS SUMMARY                   ")
+    print("=================================================================================")
+    print(f"{'Method / Model':<30} {'Accuracy':<15} {'Precision':<12} {'Recall':<12} {'F1-Score':<12}")
+    print("-" * 81)
+    print(f"{'Gaussian Naive Bayes (k=1e-9)':<30} {gnb_acc:<15.4f} {gnb_prec:<12.4f} {gnb_rec:<12.4f} {gnb_f1:<12.4f}")
+    print(f"{'K-Nearest Neighbors (k=5)':<30} {knn_acc:<15.4f} {knn_prec:<12.4f} {knn_rec:<12.4f} {knn_f1:<12.4f}")
+    print(f"{'Perceptron (lr=0.01)':<30} {p_acc:<15.4f} {p_prec:<12.4f} {p_rec:<12.4f} {p_f1:<12.4f}")
+    print("=================================================================================\n")
 
 
 if __name__ == "__main__":
