@@ -15,7 +15,7 @@ def load_dataset(path="dataset_prepared.csv"):
 def make_perceptron_features(data):
 	features = []
 	labels = []
-	sets = []
+	records = []
 
 	# dictionary to store the records 
 	data_table = {}
@@ -79,29 +79,29 @@ def make_perceptron_features(data):
 		# save the actual classification of the current record
 		labels.append(production)
 		
-		# save whether the record is part of the training set or testing set
-		sets.append(row["set"])
+		# save the original record for displaying incorrect predictions
+		records.append(row)
 
-	return np.array(features), np.array(labels), np.array(sets)
+	return np.array(features), np.array(labels), records
 
 
 # function to separate the dataset into training and testing sets
-def split_dataset(features, labels, sets):
-	# get the positions of records assigned to training
-	train_indices = np.where(sets == "train")[0]
+def split_dataset(features, labels, records):
+	# use 80% of the records for training
+	split_index = int(len(features)*0.8)
 
-	# get the positions of records assigned to testing
-	test_indices = np.where(sets == "test")[0]
+	# get the training features and their labels
+	x_train = features[:split_index]
+	y_train = labels[:split_index]
 
-	# get the training features and their actual labels
-	x_train = features[train_indices]
-	y_train = labels[train_indices]
+	# get the testing features and their labels
+	x_test = features[split_index:]
+	y_test = labels[split_index:]
 
-	# get the testing features and their actual labels
-	x_test = features[test_indices]
-	y_test = labels[test_indices]
+	# get the original records used for testing
+	test_records = records[split_index:]
 
-	return x_train, x_test, y_train, y_test 
+	return x_train, x_test, y_train, y_test, test_records 
 
 
 # function to standardize the features
@@ -224,10 +224,10 @@ def main():
 	data = load_dataset()
 
 	# create the features, labels, and dataset assignments
-	features, labels, sets = make_perceptron_features(data)
+	features, labels, records = make_perceptron_features(data)
 
 	# separate the training data and testing data
-	x_train, x_test, y_train, y_test = split_dataset(features, labels, sets)
+	x_train, x_test, y_train, y_test, test_records = split_dataset(features, labels, records)
 
 	# standardize the features
 	x_train, x_test = standardize_features(x_train, x_test)
@@ -238,6 +238,10 @@ def main():
 	# make predictions using the testing data
 	predictions = predict_perceptron(x_test, weights, bias)
 
+	# count the correct and incorrect predictions
+	correct = np.sum(y_test == predictions)
+	incorrect = np.sum(y_test != predictions)
+
 	# evaluate the predictions
 	accuracy, precision, recall, f1_score = evaluate_perceptron(y_test, predictions)
 
@@ -246,10 +250,24 @@ def main():
 	print("------------------")
 	print("Training records: ", len(x_train))
 	print("Testing records: ", len(x_test))
+	print("Correct predictions: ", correct)
+	print("Incorrect predictions: ", incorrect)
 	print("Accuracy: ", round(accuracy, 4))
 	print("Precision: ", round(precision, 4))
 	print("Recall: ", round(recall, 4))
 	print("F1 score: ", round(f1_score, 4))
+
+	# display the first 20 incorrect classifications
+	print("\nFirst 20 Incorrect Classifications")
+	print(f"{'Data Record#':<15} {'Actual':<11} {'Predicted':<8}")
+
+	incorrect_indices = np.where(y_test != predictions)[0]
+
+	for i in incorrect_indices[:20]:
+		data_no = int(0.8 * len(features)) + i + 1 
+		actual = "Increase" if y_test[i] == 1 else "Decrease" 
+		predicted = "Increase" if predictions[i] == 1 else "Decrease" 
+		print(f"{data_no:<15} {actual:<11} {predicted:<8}")
 
 
 # to run the main function
