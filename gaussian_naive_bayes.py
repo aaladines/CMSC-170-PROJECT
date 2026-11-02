@@ -127,6 +127,27 @@ def predict_increaase_decrease(features, mean_and_var, priors, epsilon):
 
     return predicted_label
 
+# Function to evaluate GNB predictions
+def evaluate_gnb(y_test, predictions):
+    y_test = np.array(y_test)
+    predictions = np.array(predictions)
+
+    true_positive = np.sum((y_test == 1) & (predictions == 1))
+    true_negative = np.sum((y_test == 0) & (predictions == 0))
+    false_positive = np.sum((y_test == 0) & (predictions == 1))
+    false_negative = np.sum((y_test == 1) & (predictions == 0))
+
+    correct = true_positive + true_negative
+    incorrect = false_positive + false_negative
+    total = len(y_test)
+
+    accuracy = (correct / total) * 100 if total > 0 else 0.0
+    precision = (true_positive / (true_positive + false_positive)) if (true_positive + false_positive) > 0 else 0.0
+    recall = (true_positive / (true_positive + false_negative)) if (true_positive + false_negative) > 0 else 0.0
+    f1_score = (2 * precision * recall / (precision + recall)) if (precision + recall) > 0 else 0.0
+
+    return correct, incorrect, accuracy, precision, recall, f1_score
+
 def gaussian_naive_bayes():
     # opens the prepared dataset
     path = "dataset_prepared.csv"
@@ -192,15 +213,13 @@ def gaussian_naive_bayes():
 
     predicted_labels = predict_increaase_decrease(testing["features"], mean_and_var, priors, epsilon)
 
-    correct = 0
+    correct, incorrect, accuracy, precision, recall, f1_score = evaluate_gnb(actual_labels, predicted_labels)
+    
     incorrect_list = []
     for i in range(len(predicted_labels)):
         data_no = training_no + i + 1
-        if predicted_labels[i] == actual_labels[i]:
-            correct +=1
-        else:
-            # where incorrect predictions are stored
-            incorrect_list.append((data_no, predicted_labels[i], actual_labels[i]))
+        if predicted_labels[i] != actual_labels[i]:
+            incorrect_list.append((data_no, actual_labels[i], predicted_labels[i]))
     
     incorrect = len(predicted_labels) - correct
     accuracy = correct / len(predicted_labels) * 100
@@ -211,6 +230,9 @@ def gaussian_naive_bayes():
     print(f"Correct predictions: {correct} ")
     print(f"Incorrect predictions: {incorrect} ")
     print(f"Classification Accuracy: {accuracy:.4f} %")
+    print(f"Precision: {precision:.4f}")
+    print(f"Recall: {recall:.4f}")
+    print(f"F1 Score: {f1_score:.4f}\n")
 
     # wrong predictions
     print(f"\nIncorrect Classifications:(first 20)")

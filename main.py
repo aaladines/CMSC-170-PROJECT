@@ -14,7 +14,8 @@ from gaussian_naive_bayes import (
     make_gnb_features,
     calculate_mean_and_var,
     class_priors,
-    predict_increaase_decrease
+    predict_increaase_decrease,
+    evaluate_gnb
 )
 from k_nearest_neighbor import (
     make_knn_features,
@@ -62,7 +63,7 @@ def run_pipeline():
     all_vars = np.concatenate([mean_var[0]["var"], mean_var[1]["var"]])
     epsilon = 1 * all_vars.max()
     gnb_preds = predict_increaase_decrease(test_gnb["features"], mean_var, priors, epsilon)
-    gnb_corr, gnb_inc, gnb_acc, gnb_prec, gnb_rec, gnb_f1 = evaluate_knn(gnb_actuals, gnb_preds)
+    gnb_corr, gnb_inc, gnb_acc, gnb_prec, gnb_rec, gnb_f1 = evaluate_gnb(gnb_actuals, gnb_preds)
 
     # Step 3: Evaluate K-Nearest Neighbors (k=5, p=2)
     print("[3/4] Running K-Nearest Neighbors (k=5, p=2)...")
