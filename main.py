@@ -3,8 +3,9 @@
 # Master Pipeline: Preprocessing & Per-Year Comparative Evaluation of GNB, KNN, and Perceptron
 
 import numpy as np
-
+import plots
 from data_loader import prepare_dataset, save_prepared_dataset, split_per_year
+import os
 
 from gaussian_naive_bayes import (
     make_gnb_features,
@@ -77,6 +78,9 @@ def score(evaluator, actual, pred):
     out = evaluator(actual, pred)
     return out[-4:]
 
+def to_binary(value):
+    """Works for both 0/1 and -1/+1 labels: positive = Increase (1), else Decrease (0)."""
+    return 1 if value > 0 else 0
 
 def run_pipeline():
     print("=" * 95)
@@ -117,19 +121,23 @@ def run_pipeline():
     p_years = np.array([int(r["year"]) for r in p_records])
     perc_results = run_per_year(p_feats, p_labels, p_years, perceptron_fit_predict, "Perceptron")
 
-    # Step 5: One comparison table per year
+    # Step 5: One comparison table per year (+ collect data for the charts)
     models = [
         ("Gaussian Naive Bayes", gnb_results, evaluate_gnb),
         ("K-Nearest Neighbors", knn_results, evaluate_knn),
         ("Perceptron", perc_results, evaluate_perceptron),
     ]
     all_years = sorted(set(gnb_results) | set(knn_results) | set(perc_results))
-
+ 
+    scores = {}        # scores[model][year] = (acc, prec, rec, f1)
+    confusion = {name: np.zeros((2, 2), dtype=int) for name, _, _ in models}  # rows=actual, cols=pred
+    class_counts = {}  # class_counts[year] = (n_decrease, n_increase)
+ 
     for year in all_years:
         print("=" * 95)
         print(f"                     COMPARATIVE MODEL RESULTS SUMMARY: YEAR {year}")
         print("=" * 95)
-
+ 
         print(f"{'Method / Model':<26} {'no. of data':<12} {'Accuracy':<12} {'Precision':<12} {'Recall':<12} {'F1-Score':<12}")
         print("-" * 95)
         for name, results, evaluator in models:
@@ -139,7 +147,38 @@ def run_pipeline():
             actual, pred = results[year]
             acc, prec, rec, f1 = score(evaluator, actual, pred)
             print(f"{name:<26} {len(actual):<12} {acc:<12.4f} {prec:<12.4f} {rec:<12.4f} {f1:<12.4f}")
-
+ 
+            # collect for charts
+            scores.setdefault(name, {})[year] = (acc, prec, rec, f1)
+            for a, p in zip(actual, pred):
+                confusion[name][to_binary(a), to_binary(p)] += 1
+            if year not in class_counts:
+                bin_actual = [to_binary(a) for a in actual]
+                class_counts[year] = (bin_actual.count(0), bin_actual.count(1))
+ 
         print()
+
+    # THIS IS THE RESULT FOR THE TABLES AND CHART
+    # Step 6: One table per metric (rows = year, columns = the three methods)
+    model_names = [name for name, _, _ in models]
+    for i, metric in enumerate(["Accuracy", "Precision", "Recall", "F1-Score"]):
+        print("=" * 95)
+        print(f"                                      {metric.upper()} PER YEAR")
+        print("=" * 95)
+        header = f"{'Year':<10}" + "".join(f"{n:<26}" for n in model_names)
+        print(header)
+        print("-" * len(header))
+        for year in all_years:
+            row = f"{year:<10}"
+            for name in model_names:
+                if year in scores.get(name, {}):
+                    row += f"{scores[name][year][i]:<26.4f}"
+                else:
+                    row += f"{'-':<26}"
+            print(row)
+        print()
+    
+    plots.show_all(scores, confusion, class_counts)
+
 if __name__ == "__main__":
     run_pipeline()
