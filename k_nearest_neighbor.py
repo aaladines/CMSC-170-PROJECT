@@ -6,6 +6,7 @@
 import csv
 import sys
 import numpy as np
+from data_loader import split_per_year
 
 def make_knn_features(data_table):
     
@@ -15,7 +16,7 @@ def make_knn_features(data_table):
     # 2. Year-over-Year change in production compared to the previous year.
     # 3. Quarter-over-Quarter change in production from the preceding quarter.
     
-    features, labels = [], []
+    features, labels, years  = [], [], []
     for key, value in data_table.items():
         crop, region, year, quarter = key
 
@@ -48,25 +49,32 @@ def make_knn_features(data_table):
 
         features.append([prev_q_feat, last_year_change, prev_quarter_change])
         labels.append(production)
+        years.append(year)
 
-    features, labels = np.array(features), np.array(labels)
+    features, labels, years = np.array(features), np.array(labels), np.array(years)
+
 
     # Feature Standardization (Z-score normalization)
     # Distance-based algorithms like KNN require normalized features so large magnitudes do not dominate
-    mean = np.mean(features, axis=0)
-    std = np.std(features, axis=0)
-    std[std == 0] = 1.0  # Prevent division by zero
-    features_scaled = (features - mean) / std
+    # mean = np.mean(features, axis=0)
+    # std = np.std(features, axis=0)
+    # std[std == 0] = 1.0  # Prevent division by zero
+    # features_scaled = (features - mean) / std
 
-    split_length = int(0.8 * len(data_table)) # 80% train, 20% test split
+    # split_length = int(0.8 * len(data_table)) # 80% train, 20% test split
     
-    training = {"features": features_scaled[:split_length], "labels": labels[:split_length]}
-    testing = {"features": features_scaled[split_length:]}
-    actual_labels = labels[split_length:]
+    # training = {"features": features_scaled[:split_length], "labels": labels[:split_length]}
+    # testing = {"features": features_scaled[split_length:]}
+    # actual_labels = labels[split_length:]
 
-    return training, testing, actual_labels, split_length
+    return features, labels, years
 
+def standardize_features(x_train, x_test):
+    mean = np.mean(x_train, axis=0)
+    std = np.std(x_train, axis=0)
+    std[std == 0] = 1.0  # Prevent division by zero
 
+    return (x_train - mean) / std, (x_test - mean) / std
 def predict_minkowski_knn(train_features, train_labels, test_features, k, p):
     
     # Classifies test instances using k-Nearest Neighbors with Minkowski distance.
@@ -136,15 +144,11 @@ def knn():
         key = (row["crop"], row["region"], int(row["year"]), int(row["quarter"]))
         data_table[key] = (float(row["same_quarter_previous_year"]), float(row["this_quarter"]), int(row["production"]))
 
-    # Prepare features and 80/20 train/test split
-    training, testing, actual_labels, split_index = make_knn_features(data_table)
-    training_no = len(training["features"])
-    testing_no = len(testing["features"])
+    # Prepare features for every row (the split happens later, per year)
+    features, labels, years = make_knn_features(data_table)
 
     print("Dataset loaded successfully")
-    print(f"Total number of records: {len(data)}")
-    print(f"Training instances: {training_no}")
-    print(f"Testing instances: {testing_no}\n")
+    print(f"Total number of records: {len(data)}\n")
 
     # User inputs for k and p parameters
     while True:
@@ -169,39 +173,57 @@ def knn():
         except ValueError:
             print("Please enter a valid numeric value.")
 
-    print(f"\nClassifying test instances with k = {k}, p = {p}...\n")
-
-    # Run KNN classification
-    predicted_labels = predict_minkowski_knn(training["features"], training["labels"], testing["features"], k, p)
-
-    # Evaluate metrics matching perceptron.py format
-    correct, incorrect, accuracy, precision, recall, f1_score = evaluate_knn(actual_labels, predicted_labels)
-
-    # Collect incorrect classifications list
-    incorrect_list = []
-    for i in range(len(predicted_labels)):
-        data_no = split_index + i + 1
-        if predicted_labels[i] != actual_labels[i]:
-            incorrect_list.append((data_no, actual_labels[i], predicted_labels[i]))
-
-    # Print KNN Classification Results
-    print("KNN CLASSIFICATION RESULTS\n")
-    print(f"k = {k}")
+    print(f"\nk = {k}")
     print(f"p = {p}\n")
-    print(f"Correct predictions: {correct}")
-    print(f"Incorrect predictions: {incorrect}")
-    print(f"Classification Accuracy: {accuracy:.4f}")
-    print(f"Precision: {precision:.4f}")
-    print(f"Recall: {recall:.4f}")
-    print(f"F1 Score: {f1_score:.4f}\n")
 
-    # Display first 20 incorrect predictions
-    print("Incorrect Classifications (first 20):")
-    print(f"{'Data Record#':<15} {'Actual':<11} {'Predicted':<8}")
-    for rec_num, actual_val, pred_val in incorrect_list[:20]:
-        actual_str = "Increase" if actual_val == 1 else "Decrease"
-        pred_str = "Increase" if pred_val == 1 else "Decrease"
-        print(f"{rec_num:<15} {actual_str:<11} {pred_str:<8}")
+    # One result per year
+    for year in sorted(set(years.tolist())):
+        # Separate the training data and testing data of this year
+        training, testing, actual_labels, test_idx = split_per_year(features, labels, years, year)
+        training_no = len(training["labels"])
+        testing_no = len(actual_labels)
+
+        # Makes sure that the data per year are enough
+        if testing_no == 0 or len(set(training["labels"].tolist())) < 2:
+            print(f"YEAR {year} has not enough data!\n")
+            continue
+
+        # Standardize using this year's training data only
+        train_x, test_x = standardize_features(training["features"], testing["features"])
+
+        # Run KNN classification (k cannot be larger than the training set)
+        predicted_labels = predict_minkowski_knn(train_x, training["labels"], test_x, min(k, training_no), p)
+
+        # Evaluate metrics matching perceptron.py format
+        correct, incorrect, accuracy, precision, recall, f1_score = evaluate_knn(actual_labels, predicted_labels)
+
+        # Collect incorrect classifications list (data_no = row number in the csv)
+        incorrect_list = []
+        for i in range(len(predicted_labels)):
+            data_no = test_idx[i] + 1
+            if predicted_labels[i] != actual_labels[i]:
+                incorrect_list.append((data_no, actual_labels[i], predicted_labels[i]))
+
+        # Print KNN Classification Results
+        print("---------------------------------------------------------------")
+        print(f"KNN CLASSIFICATION RESULTS - YEAR {year}\n")
+        print(f"Records in year: {training_no + testing_no}")
+        print(f"Training instances: {training_no}")
+        print(f"Testing instances: {testing_no}\n")
+        print(f"Correct predictions: {correct}")
+        print(f"Incorrect predictions: {incorrect}")
+        print(f"Classification Accuracy: {accuracy:.4f}")
+        print(f"Precision: {precision:.4f}")
+        print(f"Recall: {recall:.4f}")
+        print(f"F1 Score: {f1_score:.4f}\n")
+
+        # Display first 20 incorrect predictions
+        # print("Incorrect Classifications (first 20):")
+        # print(f"{'Data Record#':<15} {'Actual':<11} {'Predicted':<8}")
+        # for rec_num, actual_val, pred_val in incorrect_list[:20]:
+        #     actual_str = "Increase" if actual_val == 1 else "Decrease"
+        #     pred_str = "Increase" if pred_val == 1 else "Decrease"
+        #     print(f"{rec_num:<15} {actual_str:<11} {pred_str:<8}")
 
 
 if __name__ == "__main__":

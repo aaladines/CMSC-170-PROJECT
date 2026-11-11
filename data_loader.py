@@ -2,7 +2,7 @@ import csv
 import math
 from pathlib import Path
 import re
-
+import numpy as np
 
 def parse_quarter_headers(header):
   # match quarterly headers to column positions
@@ -190,7 +190,22 @@ def save_prepared_dataset(records, path=None):
     writer.writeheader()
     writer.writerows(records)
 
+# splits the training and testing data
+def split_per_year(features, labels, years, year, seed=170):
+  # same seed + year always gives the same shuffle, so every method gets the same split
+  rand = np.random.default_rng(seed + year)
 
+  idx = np.where(years == year)[0]  # rows that belong to a specific year
+  rand.shuffle(idx)  # randomizes the ordering
+
+  split_length = int(0.70 * len(idx))
+  train_idx, test_idx = idx[:split_length], idx[split_length:]
+
+  training = {"features": features[train_idx], "labels": labels[train_idx]}
+  testing = {"features": features[test_idx]}
+  actual_labels = labels[test_idx]
+
+  return training, testing, actual_labels, test_idx
 
 def main():
   records = prepare_dataset()

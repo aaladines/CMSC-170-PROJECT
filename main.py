@@ -1,44 +1,89 @@
 # CMSC 170: Artificial Intelligence Project
 # Group Name: Fourcast
-# Master Pipeline: Preprocessing & Comparative Evaluation of GNB, KNN, and Perceptron
+# Master Pipeline: Preprocessing & Per-Year Comparative Evaluation of GNB, KNN, and Perceptron
 
-import csv
-import sys
 import numpy as np
 
-# Import preprocessing pipeline
-from data_loader import prepare_dataset, save_prepared_dataset
+from data_loader import prepare_dataset, save_prepared_dataset, split_per_year
 
-# Import model-specific feature generators and prediction functions
 from gaussian_naive_bayes import (
     make_gnb_features,
     calculate_mean_and_var,
     class_priors,
     predict_increaase_decrease,
-    evaluate_gnb
+    evaluate_gnb,
 )
 from k_nearest_neighbor import (
     make_knn_features,
+    standardize_features as knn_standardize,
     predict_minkowski_knn,
-    evaluate_knn
+    evaluate_knn,
 )
 from perceptron import (
     load_dataset,
     make_perceptron_features,
-    split_dataset,
-    standardize_features,
+    standardize_features as perceptron_standardize,
     train_perceptron,
     predict_perceptron,
-    evaluate_perceptron
+    evaluate_perceptron,
 )
+
+GNB_K = 1e-9
+KNN_K, KNN_P = 5, 2.0
+PERCEPTRON_LR, PERCEPTRON_EPOCHS = 0.01, 100
+
+# Per-year results
+def run_per_year(features, labels, years, fit_predict, name):
+    results = {}
+    for year in sorted(set(years.tolist())):
+        training, testing, actual_labels, _ = split_per_year(features, labels, years, year)
+
+        if len(actual_labels) == 0 or len(set(training["labels"].tolist())) < 2:
+            print(f"  [{name}] year {year}: not enough data, skipped")
+            continue
+
+        preds = fit_predict(training, testing)
+        results[year] = (np.array(actual_labels), np.array(preds))
+    return results
+
+
+# Models
+def gnb_fit_predict(training, testing):
+    mean_var = calculate_mean_and_var(training["features"], training["labels"])
+    priors = class_priors(mean_var)
+    all_vars = np.concatenate([mean_var[0]["var"], mean_var[1]["var"]])
+    epsilon = GNB_K * all_vars.max()
+    return predict_increaase_decrease(testing["features"], mean_var, priors, epsilon)
+
+
+def knn_fit_predict(training, testing):
+    train_x, test_x = knn_standardize(training["features"], testing["features"])
+    k = min(KNN_K, len(training["labels"]))
+    return predict_minkowski_knn(train_x, training["labels"], test_x, k=k, p=KNN_P)
+
+
+def perceptron_fit_predict(training, testing):
+    x_tr, x_te = perceptron_standardize(training["features"], testing["features"])
+    result = train_perceptron(
+        x_tr, training["labels"],
+        learning_rate=PERCEPTRON_LR, max_epochs=PERCEPTRON_EPOCHS,
+    )
+    weights, bias, *_ = result
+    return predict_perceptron(x_te, weights, bias)
+
+
+# Metrics for one year
+def score(evaluator, actual, pred):
+    out = evaluator(actual, pred)
+    return out[-4:]
 
 
 def run_pipeline():
-    print("================================================================================")
-    print("          CMSC 170 PROJECT: FOURCAST AGRICULTURAL YIELD PREDICTION    ")
-    print("================================================================================\n")
+    print("=" * 95)
+    print("               CMSC 170 PROJECT: FOURCAST AGRICULTURAL YIELD PREDICTION")
+    print("=" * 95)
 
-    # Step 1: Data Preparation
+    # Step 1: Data preparation
     print("[1/4] Preparing dataset and generating dataset_prepared.csv...")
     records = prepare_dataset()
     save_prepared_dataset(records)
@@ -52,51 +97,49 @@ def run_pipeline():
         data_table[key] = (
             float(r["same_quarter_previous_year"]),
             float(r["this_quarter"]),
-            int(r["production"])
+            int(r["production"]),
         )
 
-    # Step 2: Evaluate Gaussian Naive Bayes
-    print("[2/4] Running Gaussian Naive Bayes (k=1e-9)...")
-    train_gnb, test_gnb, gnb_actuals = make_gnb_features(data_table)
-    mean_var = calculate_mean_and_var(train_gnb["features"], train_gnb["labels"])
-    priors = class_priors(mean_var)
-    all_vars = np.concatenate([mean_var[0]["var"], mean_var[1]["var"]])
-    epsilon = 1e-9 * all_vars.max()
-    gnb_preds = predict_increaase_decrease(test_gnb["features"], mean_var, priors, epsilon)
-    gnb_corr, gnb_inc, gnb_acc, gnb_prec, gnb_rec, gnb_f1 = evaluate_gnb(gnb_actuals, gnb_preds)
+    # Step 2: Gaussian Naive Bayes
+    print(f"[2/4] Running Gaussian Naive Bayes (k={GNB_K:g}), per year...")
+    g_feats, g_labels, g_years = make_gnb_features(data_table)
+    gnb_results = run_per_year(g_feats, g_labels, g_years, gnb_fit_predict, "GNB")
 
-    # Step 3: Evaluate K-Nearest Neighbors (k=5, p=2)
-    print("[3/4] Running K-Nearest Neighbors (k=5, p=2)...")
-    train_knn, test_knn, knn_actuals, _ = make_knn_features(data_table)
-    knn_preds = predict_minkowski_knn(
-        train_knn["features"],
-        train_knn["labels"],
-        test_knn["features"],
-        k=5,
-        p=2.0
-    )
-    knn_corr, knn_inc, knn_acc, knn_prec, knn_rec, knn_f1 = evaluate_knn(knn_actuals, knn_preds)
+    # Step 3: Evaluate K-Nearest Neighbors
+    print(f"[3/4] Running K-Nearest Neighbors (k={KNN_K}, p={KNN_P:g}), per year...")
+    k_feats, k_labels, k_years = make_knn_features(data_table)
+    knn_results = run_per_year(k_feats, k_labels, k_years, knn_fit_predict, "KNN")
 
     # Step 4: Evaluate Perceptron (learning_rate=0.01, max_epochs=100)
-    print("[4/4] Running Perceptron (learning_rate=0.01, epochs=100)...")
+    print(f"[4/4] Running Perceptron (lr={PERCEPTRON_LR}, epochs={PERCEPTRON_EPOCHS}), per year...")
     p_feats, p_labels, p_records = make_perceptron_features(data)
-    px_tr, px_te, py_tr, py_te, _ = split_dataset(p_feats, p_labels, p_records)
-    px_tr_scaled, px_te_scaled = standardize_features(px_tr, px_te)
-    p_weights, p_bias = train_perceptron(px_tr_scaled, py_tr, learning_rate=0.01, max_epochs=100)
-    p_preds = predict_perceptron(px_te_scaled, p_weights, p_bias)
-    p_acc, p_prec, p_rec, p_f1 = evaluate_perceptron(py_te, p_preds)
+    p_feats, p_labels = np.array(p_feats), np.array(p_labels)
+    p_years = np.array([int(r["year"]) for r in p_records])
+    perc_results = run_per_year(p_feats, p_labels, p_years, perceptron_fit_predict, "Perceptron")
 
-    # Step 5: Output Comparative Summary Table
-    print("\n=================================================================================")
-    print("                         COMPARATIVE MODEL RESULTS SUMMARY                   ")
-    print("=================================================================================")
-    print(f"{'Method / Model':<30} {'Accuracy':<15} {'Precision':<12} {'Recall':<12} {'F1-Score':<12}")
-    print("-" * 81)
-    print(f"{'Gaussian Naive Bayes (k=1e-9)':<30} {gnb_acc:<15.4f} {gnb_prec:<12.4f} {gnb_rec:<12.4f} {gnb_f1:<12.4f}")
-    print(f"{'K-Nearest Neighbors (k=5)':<30} {knn_acc:<15.4f} {knn_prec:<12.4f} {knn_rec:<12.4f} {knn_f1:<12.4f}")
-    print(f"{'Perceptron (lr=0.01)':<30} {p_acc:<15.4f} {p_prec:<12.4f} {p_rec:<12.4f} {p_f1:<12.4f}")
-    print("=================================================================================\n")
+    # Step 5: One comparison table per year
+    models = [
+        ("Gaussian Naive Bayes", gnb_results, evaluate_gnb),
+        ("K-Nearest Neighbors", knn_results, evaluate_knn),
+        ("Perceptron", perc_results, evaluate_perceptron),
+    ]
+    all_years = sorted(set(gnb_results) | set(knn_results) | set(perc_results))
 
+    for year in all_years:
+        print("=" * 95)
+        print(f"                     COMPARATIVE MODEL RESULTS SUMMARY: YEAR {year}")
+        print("=" * 95)
 
+        print(f"{'Method / Model':<26} {'no. of data':<12} {'Accuracy':<12} {'Precision':<12} {'Recall':<12} {'F1-Score':<12}")
+        print("-" * 95)
+        for name, results, evaluator in models:
+            if year not in results:
+                print(f"{name:<26} {'-':<12} {'-':<12} {'-':<12} {'-':<12} {'-':<12}")
+                continue
+            actual, pred = results[year]
+            acc, prec, rec, f1 = score(evaluator, actual, pred)
+            print(f"{name:<26} {len(actual):<12} {acc:<12.4f} {prec:<12.4f} {rec:<12.4f} {f1:<12.4f}")
+
+        print()
 if __name__ == "__main__":
     run_pipeline()

@@ -7,6 +7,7 @@
 import csv
 import sys
 import numpy as np
+from data_loader import split_per_year
 
 # functions that make the features for the gaussian naive bayes method
 # three features will be made.
@@ -15,7 +16,7 @@ import numpy as np
 # 3. change in production of the following year from last year 
 def make_gnb_features(data_table):
     # empty lists for the 
-    features, labels = [], []
+    features, labels, years = [], [], []
     for key, value in data_table.items():
         crop, region, year, quarter = key
 
@@ -51,16 +52,17 @@ def make_gnb_features(data_table):
 
         features.append([prev_q_feat, last_year_change,prev_quarter_change ])
         labels.append(production)
+        years.append(year)
         # make it into a numpy array for easier manipulation
-    features, labels = np.array(features), np.array(labels)
+    features, labels, years = np.array(features), np.array(labels), np.array(years)
 
-    split_length = int(0.8 * len(data_table)) #  the training data is 80% while the testing data is 20%
+    # split_length = int(0.8 * len(data_table)) #  the training data is 80% while the testing data is 20%
     
-    training = {"features": features[:split_length], "labels": labels[:split_length]} # training includes the label
-    testing = {"features": features[split_length:]} # testing does not include the label
-    actual_labels = labels[split_length:] # this is the correct label for the testing data
+    # training = {"features": features[:split_length], "labels": labels[:split_length]} # training includes the label
+    # testing = {"features": features[split_length:]} # testing does not include the label
+    # actual_labels = labels[split_length:] # this is the correct label for the testing data
 
-    return training, testing, actual_labels
+    return features, labels, years
 
  # gets the mean and variance for classifications (0 and 1) -> increase/decrease
 def calculate_mean_and_var(features, labels):
@@ -156,43 +158,22 @@ def gaussian_naive_bayes():
 
     try:
         with open(path, newline="", encoding="utf-8") as f:
-            # stored as a dictionary based on the label on the first row. 
-            # ex. {crop:... , region: ..., year, quarter, ... }
             data = list(csv.DictReader(f))
-
     except FileNotFoundError:
         print(f"Cannot find {path}")
         return
-    # print(data)
 
-    # stores the data into a dictionary
     data_table = {}
-
-    # sample: ('Ampalaya fruit [Bitter gourd]', 'CORDILLERA ADMINISTRATIVE REGION (CAR)', 2011, 1) --> (162.58, 165.01)
     for row in data:
         key = (row["crop"], row["region"], int(row["year"]), int(row["quarter"]))
         data_table[key] = (float(row["same_quarter_previous_year"]), float(row["this_quarter"]), int(row["production"]))
 
-    # print(data_table[:10])
-    # for key, value in list(damta_table.items())[:10]:
-    #     print(key, ":   ", value)
-
-    # split the data (80/20) -> training and testing
-    training, testing, actual_labels = make_gnb_features(data_table)
-    training_no = int(len(data) * .80)
-    testing_no = int(len(data) * .20)
+    # features for every row (the split happens later, per year)
+    features, labels, years = make_gnb_features(data_table)
     print("Dataset loaded successfully")
     print(f"Total number of records: {len(data)}")
-    print(f"Training instances: {training_no}")
-    print(f"Testing instances: {testing_no}")
 
-    # this part is where learning in the training data occurs
-
-    # gets the mean and variance for every row of every classification
-    mean_and_var = calculate_mean_and_var(training["features"], training["labels"])
-    priors = class_priors(mean_and_var)
-
-    #  select a k value
+    # select a k value
     while True:
         k_input = input("Enter k value from 0 to 1 (ex. 1e-9):  ")
         try:
@@ -201,49 +182,59 @@ def gaussian_naive_bayes():
                 break
             else:
                 print("Invalid input! Please enter a valid k value between 0 and 1!")
-        except ValueError: #when the user enters a non numeric value
+        except ValueError:
             print("Please enter a numeric value")
     print(f"\nk = {k_input}\n")
 
-    # gets all the variances from the two classifications
-    all_variances = np.concatenate([mean_and_var[0]["var"], mean_and_var[1]["var"]])
+    # rng = np.random.default_rng(170) # same rng seed (same each run)
 
-    # epsilon is just a very small number to prevent division by zero (smoothing factor only)
-    epsilon = k * all_variances.max()
+    # one result per year (2011-2026 -> 16 results)
+    for year in sorted(set(years.tolist())):
+        training, testing, actual_labels, test_idx = split_per_year(features, labels, years, year)
+        training_no = len(training["labels"])
+        testing_no = len(actual_labels)
 
-    predicted_labels = predict_increaase_decrease(testing["features"], mean_and_var, priors, epsilon)
+        # makes sure that the data per year are enough
+        if testing_no == 0 or len(set(training["labels"].tolist())) < 2:
+            print(f"YEAR {year} has not enough data!:\n")
+            continue
 
-    correct, incorrect, accuracy, precision, recall, f1_score = evaluate_gnb(actual_labels, predicted_labels)
-    
-    incorrect_list = []
-    for i in range(len(predicted_labels)):
-        data_no = training_no + i + 1
-        if predicted_labels[i] != actual_labels[i]:
-            incorrect_list.append((data_no, actual_labels[i], predicted_labels[i]))
-    
-    incorrect = len(predicted_labels) - correct
-    accuracy = correct / len(predicted_labels) 
+        # learning in the training data
+        mean_and_var = calculate_mean_and_var(training["features"], training["labels"])
+        priors = class_priors(mean_and_var)
 
-    # printing the result
-    print("GAUSSIAN NAIVE BAYES CLASSIFICATION RESULTS\n")
+        all_variances = np.concatenate([mean_and_var[0]["var"], mean_and_var[1]["var"]])
+        epsilon = k * all_variances.max()
 
-    print(f"Correct predictions: {correct} ")
-    print(f"Incorrect predictions: {incorrect} ")
-    print(f"Classification Accuracy: {accuracy:.4f}")
-    print(f"Precision: {precision:.4f}")
-    print(f"Recall: {recall:.4f}")
-    print(f"F1 Score: {f1_score:.4f}\n")
+        predicted_labels = predict_increaase_decrease(testing["features"], mean_and_var, priors, epsilon)
 
-    # wrong predictions
-    print(f"\nIncorrect Classifications:(first 20)")
-    print(f"Data Record#:   Actual      Predicted")
+        correct, incorrect, accuracy, precision, recall, f1_score = evaluate_gnb(actual_labels, predicted_labels)
 
-    # prints the first 20 only
-    for i in incorrect_list[:20]:
-        actual = "Increase" if i[1] == 1 else "Decrease"
-        predicted = "Increase" if i[2] == 1 else "Decrease"
-        print(f"{i[0]:<15} {actual:<11} {predicted:<8}")
+        # wrong predictions (data_no = row number in the csv)
+        incorrect_list = []
+        for i in range(len(predicted_labels)):
+            if predicted_labels[i] != actual_labels[i]:
+                incorrect_list.append((test_idx[i] + 1, actual_labels[i], predicted_labels[i]))
+
+        incorrect = len(predicted_labels) - correct
+        accuracy = correct / len(predicted_labels)
+
+        # printing the result
+        print("---------------------------------------------------------------")
+        print(f"GAUSSIAN NAIVE BAYES CLASSIFICATION RESULTS - YEAR {year}\n")
+        print(f"Records in year: {training_no + testing_no}")
+        print(f"Training instances: {training_no}")
+        print(f"Testing instances: {testing_no}\n")
+        print(f"Correct predictions: {correct} ")
+        print(f"Incorrect predictions: {incorrect}\n")
+        print(f"Classification Accuracy: {accuracy:.4f}")
+        print(f"Precision: {precision:.4f}")
+        print(f"Recall: {recall:.4f}")
+        print(f"F1 Score: {f1_score:.4f}\n")
+        # print("---------------------------------------------------------------")
+
 
 # calls the 'main' function
 if __name__ == "__main__":
+    # for i in range(15):
     gaussian_naive_bayes()

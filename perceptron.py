@@ -1,6 +1,6 @@
 import csv
 import numpy as np
-
+from data_loader import split_per_year
 
 # function to load the prepared dataset
 def load_dataset(path="dataset_prepared.csv"):
@@ -9,7 +9,6 @@ def load_dataset(path="dataset_prepared.csv"):
 		data = list(reader)
 
 	return data  
-
 
 # function to create the 3 features that will be used by the perceptron
 def make_perceptron_features(data):
@@ -26,7 +25,6 @@ def make_perceptron_features(data):
 		
 		# store the previous year's production, current production, and label
 		data_table[key] = (float(row["same_quarter_previous_year"]), float(row["this_quarter"]), int(row["production"]))
-
 
 	# this calculates the features for each record
 	for row in data:
@@ -85,24 +83,23 @@ def make_perceptron_features(data):
 	return np.array(features), np.array(labels), records
 
 
-# function to separate the dataset into training and testing sets
-def split_dataset(features, labels, records):
-	# use 80% of the records for training
-	split_index = int(len(features)*0.8)
+# # function to separate the dataset into training and testing sets
+# def split_dataset(features, labels, records):
+# 	# use 80% of the records for training
+# 	split_index = int(len(features)*0.8)
 
-	# get the training features and their labels
-	x_train = features[:split_index]
-	y_train = labels[:split_index]
+# 	# get the training features and their labels
+# 	x_train = features[:split_index]
+# 	y_train = labels[:split_index]
 
-	# get the testing features and their labels
-	x_test = features[split_index:]
-	y_test = labels[split_index:]
+# 	# get the testing features and their labels
+# 	x_test = features[split_index:]
+# 	y_test = labels[split_index:]
 
-	# get the original records used for testing
-	test_records = records[split_index:]
+# 	# get the original records used for testing
+# 	test_records = records[split_index:]
 
-	return x_train, x_test, y_train, y_test, test_records 
-
+# 	return x_train, x_test, y_train, y_test, test_records 
 
 # function to standardize the features
 def standardize_features(x_train, x_test):
@@ -119,9 +116,8 @@ def standardize_features(x_train, x_test):
 
 	return x_train, x_test
 
-
 # function to train the perceptron using the learning algorithm
-def train_perceptron(x_train, y_train, learning_rate=0.01, max_epochs=100):
+def train_perceptron(x_train, y_train, learning_rate=0.01, max_epochs = 100):
 	# convert the labels from 0 and 1 to -1 and 1
 	y_train = np.where(y_train == 0, -1, 1)
 
@@ -129,8 +125,14 @@ def train_perceptron(x_train, y_train, learning_rate=0.01, max_epochs=100):
 	weights = np.zeros(x_train.shape[1])
 	bias = 0.0
 
+	# keeps track of how many epochs were done and if training stopped on its own
+	epochs_run = 0
+	converged = False
+
 	# repeat the training process for the given number of epochs
 	for epoch in range(max_epochs):
+		# number of epochs completed so far
+		epochs_run = epoch + 1
 		updates = 0 
 
 		# loops through each training record
@@ -155,10 +157,10 @@ def train_perceptron(x_train, y_train, learning_rate=0.01, max_epochs=100):
 
 		# stop training if there are no more weight updates
 		if updates == 0:
+			converged = True
 			break
 
-	return weights, bias
-
+	return weights, bias, epochs_run, converged
 
 # function to make predictions using the trained perceptron
 def predict_perceptron(x_test, weights, bias):
@@ -226,49 +228,71 @@ def main():
 	# create the features, labels, and dataset assignments
 	features, labels, records = make_perceptron_features(data)
 
-	# separate the training data and testing data
-	x_train, x_test, y_train, y_test, test_records = split_dataset(features, labels, records)
+	# the year of each record, used for the per-year split
+	years = np.array([int(r["year"]) for r in records])
 
-	# standardize the features
-	x_train, x_test = standardize_features(x_train, x_test)
+	print("Dataset loaded successfully")
+	print(f"Total number of records: {len(data)}\n")
 
-	# train the perceptron
-	weights, bias = train_perceptron(x_train, y_train)
+	# one result per year
+	for year in sorted(set(years.tolist())):
+		# separate the training data and testing data of this year
+		training, testing, y_test, test_idx = split_per_year(features, labels, years, year, 170)
+		x_train, y_train = training["features"], training["labels"]
+		x_test = testing["features"]
 
-	# make predictions using the testing data
-	predictions = predict_perceptron(x_test, weights, bias)
+		# makes sure that the data per year are enough
+		if len(y_test) == 0 or len(set(y_train.tolist())) < 2:
+			print(f"YEAR {year} has not enough data!\n")
+			continue
 
-	# count the correct and incorrect predictions
-	correct = np.sum(y_test == predictions)
-	incorrect = np.sum(y_test != predictions)
+		# standardize the features
+		x_train, x_test = standardize_features(x_train, x_test)
 
-	# evaluate the predictions
-	accuracy, precision, recall, f1_score = evaluate_perceptron(y_test, predictions)
+		# train the perceptron
+		weights, bias, epochs_run, converged = train_perceptron(x_train, y_train)
 
-	# results
-	print("Perceptron Results")
-	print("------------------")
-	print("Training records: ", len(x_train))
-	print("Testing records: ", len(x_test))
-	print("Correct predictions: ", correct)
-	print("Incorrect predictions: ", incorrect)
-	print("Accuracy: ", round(accuracy, 4))
-	print("Precision: ", round(precision, 4))
-	print("Recall: ", round(recall, 4))
-	print("F1 score: ", round(f1_score, 4))
+		# make predictions using the testing data
+		predictions = predict_perceptron(x_test, weights, bias)
 
-	# display the first 20 incorrect classifications
-	print("\nFirst 20 Incorrect Classifications")
-	print(f"{'Data Record#':<15} {'Actual':<11} {'Predicted':<8}")
+		# count the correct and incorrect predictions
+		correct = np.sum(y_test == predictions)
+		incorrect = np.sum(y_test != predictions)
 
-	incorrect_indices = np.where(y_test != predictions)[0]
+		# evaluate the predictions
+		accuracy, precision, recall, f1_score = evaluate_perceptron(y_test, predictions)
 
-	for i in incorrect_indices[:20]:
-		data_no = int(0.8 * len(features)) + i + 1 
-		actual = "Increase" if y_test[i] == 1 else "Decrease" 
-		predicted = "Increase" if predictions[i] == 1 else "Decrease" 
-		print(f"{data_no:<15} {actual:<11} {predicted:<8}")
+		# results
+		print("---------------------------------------------------------------")
+		print(f"PERCEPTRON RESULTS - YEAR {year}\n")
+		print("Records in year: ", len(y_train) + len(y_test))
+		print("Training records: ", len(x_train))
+		print("Testing records: ", len(x_test))
+		print()
+		print("Epochs run: ", epochs_run, "(converged)" if converged else "(reached max epochs)")
+		print("Correct predictions: ", correct)
+		print("Incorrect predictions: ", incorrect)
+		print()
+		print("Accuracy: ", round(accuracy, 4))
+		print("Precision: ", round(precision, 4))
+		print("Recall: ", round(recall, 4))
+		print("F1 score: ", round(f1_score, 4))
 
+
+		# display the first 20 incorrect classifications
+		# print("\nFirst 20 Incorrect Classifications")
+		# print(f"{'Data Record#':<15} {'Actual':<11} {'Predicted':<8}")
+
+		# incorrect_indices = np.where(y_test != predictions)[0]
+
+		# for i in incorrect_indices[:20]:
+		# 	# row number in the csv, same as the naive bayes
+		# 	data_no = test_idx[i] + 1
+		# 	actual = "Increase" if y_test[i] == 1 else "Decrease" 
+		# 	predicted = "Increase" if predictions[i] == 1 else "Decrease" 
+		# 	print(f"{data_no:<15} {actual:<11} {predicted:<8}")
+
+		print()
 
 # to run the main function
 if __name__ == "__main__":
