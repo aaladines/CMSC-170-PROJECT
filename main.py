@@ -30,7 +30,7 @@ from perceptron import (
 )
 
 GNB_K = 1e-9
-KNN_K, KNN_P = 17, 2.0
+KNN_K, KNN_P = 19, 2.0
 PERCEPTRON_LR, PERCEPTRON_EPOCHS = 0.01, 100
 
 # Per-year results
