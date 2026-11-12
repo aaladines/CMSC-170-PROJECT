@@ -198,7 +198,7 @@ def split_per_year(features, labels, years, year, seed=170):
   idx = np.where(years == year)[0]  # rows that belong to a specific year
   rand.shuffle(idx)  # randomizes the ordering
 
-  split_length = int(0.70 * len(idx))
+  split_length = int(0.80 * len(idx))
   train_idx, test_idx = idx[:split_length], idx[split_length:]
 
   training = {"features": features[train_idx], "labels": labels[train_idx]}
