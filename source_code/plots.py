@@ -7,8 +7,12 @@ import plotly.graph_objects as plotly #plots the graph in html (for interactivit
 
 METRICS = ["Accuracy", "Precision", "Recall", "F1-Score"]
 FILENAMES = ["accuracy", "precision", "recall", "f1_score"]
-FONT_SIZE = 18   # base font size for all charts
-OUTPUT_FOLDER = "tables_and_charts"
+FONT_SIZE = 14   # base font size for all charts
+
+# the folder is one level above source_code, next to index.html
+OUTPUT_FOLDER = os.path.normpath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "tables_and_charts")
+)
 # styling for the graph
 COLORS = {
     "Gaussian Naive Bayes": "#1f77b4",
@@ -61,18 +65,46 @@ def plot_metric_per_year(scores, metric_index):
         )
 
     # titles, axes, fonts, and size
+    # fig.update_layout(
+    #     title=metric + " per Year",
+    #     xaxis=dict(title="Year", dtick=1), # dtick=1: one tick per year
+    #     yaxis=dict(
+    #         title=metric,
+    #         range=[0, 1.05], # scores are 0 to 1, with a little room at the top
+    #         dtick=0.1, # tick every 0.1
+    #         tickformat=".2f", # show two decimal place
+    #     ),
+    #     font=dict(size=FONT_SIZE),
+    #     title_font_size=FONT_SIZE + 6, # title is a bit bigger than other text
+    #     height=650, # chart height in pixels
+    # )
+
     fig.update_layout(
-        title=metric + " per Year",
-        xaxis=dict(title="Year", dtick=1), # dtick=1: one tick per year
+        title=dict(
+            text="<b>" + metric + " per Year</b>",
+            x=0, xanchor="left",
+            y=0.97, yanchor="top",
+        ),
+        xaxis=dict(
+            title=dict(text="Year", standoff=15),
+            dtick=1,
+            range=[2010.5, 2026.5], # no empty ticks at 2010 / 2027
+        ),
         yaxis=dict(
-            title=metric,
-            range=[0, 1.05], # scores are 0 to 1, with a little room at the top
-            dtick=0.1, # tick every 0.1
-            tickformat=".2f", # show two decimal place
+            title=dict(text=metric, standoff=10),
+            range=[0, 1.05],
+            dtick=0.1,
+            tickformat=".2f",
+        ),
+        legend=dict(
+            orientation="h",
+            x=0, xanchor="left",
+            y=1.03, yanchor="bottom",
         ),
         font=dict(size=FONT_SIZE),
-        title_font_size=FONT_SIZE + 6, # title is a bit bigger than other text
-        height=650, # chart height in pixels
+        title_font_size=FONT_SIZE + 6,
+        height=650,
+        margin=dict(t=130, r=30, b=70, l=70),
     )
 
     return fig

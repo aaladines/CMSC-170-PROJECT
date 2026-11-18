@@ -5,7 +5,6 @@
 import numpy as np
 import plots
 from data_loader import prepare_dataset, save_prepared_dataset, split_per_year
-import os
 
 from gaussian_naive_bayes import (
     make_gnb_features,

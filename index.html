@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CMSC 170 AI PROJECT</title>
+
+  <!-- all page styling are in style.css -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <!-- Project title and group members -->
+  <header id="title" class="hero">
+    <h1>CMSC 170 AI PROJECT (ITIGIL NA TO PLS)</h1>
+    <h2>Group Members</h2>
+    <ul>
+      <li>Ken Kristoffer F. Enrile</li>
+      <li>Angelo Gabriel A. Ladines</li>
+      <li>Lawrence Andrew Maminta</li>
+      <li>Arianne Marie R. Reyes</li>
+    </ul>
+  </header>
+
+  <!-- NAVIGATION -->
+  <!-- table of contents where each link jumps to the section with the matching id  -->
+  <nav class="toc">
+    <ol>
+      <li><a href="#problem">Background</a></li>
+      <li><a href="#dataset">Dataset Description</a></li>
+      <li><a href="#methods">Methods</a></li>
+      <li><a href="#setup">Data Setup</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#discussion">Discussion</a></li>
+      <li><a href="#conclusion">Conclusion</a></li>
+      <li><a href="#references">References</a></li>
+      <li><a href="#links">Links</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- I. PROBLEM AND MOTIVATION -->
+    <section id="problem">
+      <h2>Problem Statement and Motivation</h2>
+
+      <h3>Motivation</h3>
+      <p>Many agricultural products cannot be stored for a long time such as vegetables and root crops due to their short shelf life. 
+        They spoil quickly and cannot be stored for a long time, which means that a drop in supply may lead to higher prices.</p>
+      <p>If the prediction of the production of vegetable crop in a province is expected to be lower than the same quarter of the previous year, 
+        the government, in connection with agricultural traders from other provinces that have higher production can supply it to the province 
+        that needs to more just to stabilize prices. In contrast, if the production were to increase, farmers and traders could supply it to 
+        other provinces that are in need.</p>
+
+      <h3>Problem Statement</h3>
+      <p>Can KNN, Gaussian Naive Bayes, Perceptron predict whether a province's quarterly production of a vegetable or root crop increases or 
+        decreases compared with the same quarter of the previous year using past data?</p>
+    </section>
+
+    <!-- II. DATASET -->
+    <section id="dataset">
+      <h2>Dataset Description</h2>
+
+      <h3>Overview and Size</h3>
+      <p>The dataset includes a variety of vegetable and root crop quarterly, semestral, and annual production data for 
+        every province in the Philippines from 2010-2026. After preprocessing, the dataset has 9920 rows.</p>
+
+      <h3>Source</h3>
+      <p>Philippine Statistics Authority (PSA)</p>
+
+      <h3>Features and Target</h3>
+      <p>To accurately forecast whether a province's quarterly yield for top vegetable and root crops 
+        (based on Philippine agricultural crop production data) will increase (Class 1) or decrease/remain stagnant (Class 0) 
+        compared to the exact same quarter of the previous calendar year.</p>
+
+      <h3>Preprocessing Steps</h3>
+      <ul>
+        <li>The dataset was prepared by keeping the ten selected crops and regional production records, excluding the Negros Island Region (NIR), 
+            provincial records, and the national total.</li>
+        <li>Semester and annual totals were removed, leaving only quarterly observations grouped by crop and region.</li>
+        <li>Region names were cleaned by removing leading dots and extra spaces, and production values were converted into numeric form.</li>
+        <li>Missing values marked as ".." were skipped, while actual zero-production values were preserved.</li>
+        <li>Each quarter was paired with the same quarter of the previous year, and pairs with missing observations were excluded.</li>
+        <li>Production was labeled 1 if it increased and 0 if it decreased.</li>
+      </ul>
+    </section>
+
+    <!-- III. METHODS  -->
+    <section id="methods">
+      <h2>Methods</h2>
+
+      <h3>K-Nearest Neighbors (KNN)</h3>
+      <p>KNN is an instance-based learning algorithm that classifies a new data point by finding the k most similar historical samples in the dataset 
+        and taking a majority vote of their outcomes. This method is highly appropriate for our problem because agricultural patterns are often 
+        cyclical and localized. Provinces with similar recent production trends and seasonal positions are likely to experience similar future outcomes. 
+        Because KNN makes no underlying assumptions about the mathematical distribution of the data, it can effectively capture these localized, 
+        repeating patterns that a global model might overlook. By calculating the Euclidean distance between standardized features 
+        (such as previous year-over-year changes and log volumes), KNN will predict whether a province's quarterly production will 
+        increase or decrease based on what occurred during historically similar quarters.</p>
+
+      <h3>Gaussian Naive Bayes</h3>
+      <p>Gaussian Naive Bayes is a probabilistic, generative classifier based on Bayes' Theorem that estimates the mean and variance of each feature 
+        for both the "increase" and "decrease" classes. It is suitable for this problem because our dataset consists of continuous numerical features 
+        (such as production volume in metric tons), allowing the Gaussian variant to model these features without requiring us to discretize or categorize 
+        the continuous data. While the assumption of feature independence is likely violated in time-series agricultural data (since lagged production 
+        changes are correlated), using Gaussian Naive Bayes serves as an excellent probabilistic baseline that contrasts sharply with the other chosen methods.</p>
+
+      <h3>Perceptron</h3>
+      <p>The Perceptron is a linear classifier that iteratively learns a weight vector and bias to draw a separating hyperplane between the two classes. 
+        This algorithm is appropriate for our project because it directly tests whether agricultural production increases and decreases can be 
+        linearly separated within our feature space. It provides a simple, efficient linear baseline that heavily contrasts with both the instance-based 
+        approach of KNN and the probabilistic approach of Naive Bayes. By passing normalized input features through a step activation function and updating
+         weights over several epochs, the Perceptron will attempt to learn a definitive boundary. If the agricultural data proves too noisy or not linearly 
+         separable, observing its failure to converge will provide valuable insights for our evaluation discussion.</p>
+    </section>
+
+    <!-- IV. DATA SETUP  -->
+    <section id="setup">
+      <h2>Data Setup</h2>
+
+      <!-- 80/20 train-test split -->
+      <h3>Data Splitting (Training/Testing)</h3>
+        <p>In training and splitting the data, the group used 80% for training and 20% for testing, 
+        applied separately within each year instead of once over the whole dataset. 
+        The rows of each year were assigned to the training or testing set using a random number generator, 
+        so that the testing data is not biased toward the later years or toward any one quarter, such as Q4. 
+        For the dataset, the total amount of available data was 9920 rows, hence the amount of available training and testing rows are 7936 and 1984, respectively. 
+        This gives 512 training and 128 testing rows for each year from 2011 to 2025, and 256 training and 64 testing rows for 2026. 
+        </p>
+      
+        <!-- metrics used to score the three models, with their formulas -->
+      <h3>Evaluation Metrics</h3>
+      <p>To evaluate the performance of the three implemented machine learning algorithms, namely, Gaussian Naive Bayes (GNB), K-Nearest Neighbors (KNN), 
+        and Perceptron, we used four evaluation metrics: Accuracy, Precision, Recall, and F1-score.</p>
+
+      <!-- definitions of the confusion-matrix terms used in the formulas -->
+      <h4>Variables</h4>
+      <ul>
+        <li>True Positive (TP): The actual label is 1 and the predicted label is also 1.</li>
+        <li>True Negative (TN): The actual label is 0 and the predicted label is also 0.</li>
+        <li>False Positive (FP): The label is 0, but the predicted label is 1.</li>
+        <li>False Negative (FN): The label is 1, but the predicted label is 0.</li>
+      </ul>
+
+      <p><strong>Accuracy</strong> measures the proportion of correctly predicted records out of all testing records. 
+        It provides an overall measure of how often the model makes correct predictions.<br>Accuracy = (TP + TN) / (TP + TN + FP + FN)</p>
+      <p><strong>Precision</strong> measures the proportion of records predicted as an increase that actually increases. 
+        It indicates how reliable the model's positive predictions are.<br>Precision = TP / (TP + FP)</p>
+      <p><strong>Recall</strong> measures the proportion of actual increases that are correctly identified by the model. 
+        It indicates how well the model detects increases in crop production.<br>Recall = TP / (TP + FN)</p>
+      <p><strong>F1 score</strong> provides a combined measure of both Precision and Recall. This is useful for assessing the balance
+         between identifying actual increases and avoiding incorrect increase predictions.<br>F1 score = (2 * Precision * Recall) / (Precision + Recall)</p>
+
+      <!--settings used for each model -->
+      <h3>Hyperparameters</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Method / Model</th>
+              <th>Configuration</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Gaussian Naive Bayes</td>
+              <td>k = 1e-9 </td>
+            </tr>
+            <tr>
+              <td>K-Nearest Neighbors</td>
+              <td>k = 19, p = 2 (Euclidean distance)</td>
+            </tr>
+            <tr>
+              <td>Perceptron</td>
+              <td>Learning rate = 0.01, Max epochs = 100</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- V. RESULTS  -->
+    <section id="results">
+      <h2>Results</h2>
+      <p>The three machine learning algorithms, Gaussian Naive Bayes (GNB), K-Nearest Neighbors (KNN), and Perceptron, were evaluated separately 
+        for each year from 2011 - 2026. The results are presented through line graphs, with each graph showing the yearly performance of the three algorithms.</p>
+
+      <!-- four Plotly charts, one per metric. Each chart is its own HTML file
+           inside the tables_and_charts folder (generated by plots.py) -->
+      <h3>Line Graphs</h3>
+      <div class="chart-grid">
+        <div class="fig"><iframe src="tables_and_charts/accuracy.html" title="Accuracy per Year" loading="lazy"></iframe></div>
+        <div class="fig"><iframe src="tables_and_charts/precision.html" title="Precision per Year" loading="lazy"></iframe></div>
+        <div class="fig"><iframe src="tables_and_charts/recall.html" title="Recall per Year" loading="lazy"></iframe></div>
+        <div class="fig"><iframe src="tables_and_charts/f1_score.html" title="F1-Score per Year" loading="lazy"></iframe></div>
+      </div>
+
+      <!-- year-by-year comparison. Each year is one with three rows (GNB, KNN, Perceptron). -->
+      <h3>Comparative Model Results by Year</h3>
+      <div class="table-wrap year-scroll">
+        <table class="year-table">
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th class="model">Method / Model</th>
+              <th>No. of data</th>
+              <th>Accuracy</th>
+              <th>Precision</th>
+              <th>Recall</th>
+              <th>F1-Score</th>
+            </tr>
+          </thead>
+
+          <!-- 2011 -->
+          <tbody>
+            <tr><th scope="rowgroup" rowspan="3" class="yr">2011</th><td class="model">Gaussian Naive Bayes</td><td>128</td><td>0.5625</td><td>0.5586</td><td class="best">0.8986</td><td>0.6889</td></tr>
+            <tr><td class="model">K-Nearest Neighbors</td><td>128</td><td>0.6484</td><td>0.6277</td><td>0.8551</td><td>0.7239</td></tr>
+            <tr><td class="model">Perceptron</td><td>128</td><td class="best">0.6719</td><td class="best">0.6392</td><td class="best">0.8986</td><td class="best">0.7470</td></tr>
+          </tbody>
+          <!-- 2012 -->
+          <tbody>
+            <tr><th scope="rowgroup" rowspan="3" class="yr">2012</th><td class="model">Gaussian Naive Bayes</td><td>128</td><td class="best">0.7500</td><td>0.7500</td><td class="best">1.0000</td><td class="best">0.8571</td></tr>
+            <tr><td class="model">K-Nearest Neighbors</td><td>128</td><td>0.7266</td><td>0.7652</td><td>0.9167</td><td>0.8341</td></tr>
+            <tr><td class="model">Perceptron</td><td>128</td><td class="best">0.7500</td><td class="best">0.7909</td><td>0.9062</td><td>0.8447</td></tr>
+          </tbody>
+          <!-- 2013 -->
+          <tbody>
+            <tr><th scope="rowgroup" rowspan="3" class="yr">2013</th><td class="model">Gaussian Naive Bayes</td><td>128</td><td class="best">0.6172</td><td>0.6102</td><td class="best">0.9600</td><td class="best">0.7461</td></tr>
+            <tr><td class="model">K-Nearest Neighbors</td><td>128</td><td>0.5859</td><td>0.6078</td><td>0.8267</td><td>0.7006</td></tr>
+            <tr><td class="model">Perceptron</td><td>128</td><td class="best">0.6172</td><td class="best">0.6275</td><td>0.8533</td><td>0.7232</td></tr>
+          </tbody>
+          <!-- 2014 -->
+          <tbody>
+            <tr><th scope="rowgroup" rowspan="3" class="yr">2014</th><td class="model">Gaussian Naive Bayes</td><td>128</td><td>0.6406</td><td>0.6404</td><td class="best">0.9359</td><td>0.7604</td></tr>
+            <tr><td class="model">K-Nearest Neighbors</td><td>128</td><td class="best">0.6797</td><td class="best">0.6907</td><td>0.8590</td><td class="best">0.7657</td></tr>
+            <tr><td class="model">Perceptron</td><td>128</td><td>0.6250</td><td>0.6744</td><td>0.7436</td><td>0.7073</td></tr>
+          </tbody>
+          <!-- 2015 -->
+          <tbody>
+            <tr><th scope="rowgroup" rowspan="3" class="yr">2015</th><td class="model">Gaussian Naive Bayes</td><td>128</td><td>0.5859</td><td class="best">0.7368</td><td>0.3944</td><td>0.5138</td></tr>
+            <tr><td class="model">K-Nearest Neighbors</td><td>128</td><td class="best">0.6953</td><td>0.7222</td><td>0.7324</td><td class="best">0.7273</td></tr>
+            <tr><td class="model">Perceptron</td><td>128</td><td>0.5391</td><td>0.5517</td><td class="best">0.9014</td><td>0.6845</td></tr>
+          </tbody>
+          <!-- 2016 -->
+          <tbody>
+            <tr><th scope="rowgroup" rowspan="3" class="yr">2016</th><td class="model">Gaussian Naive Bayes</td><td>128</td><td>0.5547</td><td>0.5714</td><td>0.2000</td><td>0.2963</td></tr>
+            <tr><td class="model">K-Nearest Neighbors</td><td>128</td><td class="best">0.6172</td><td class="best">0.6410</td><td>0.4167</td><td>0.5051</td></tr>
+            <tr><td class="model">Perceptron</td><td>128</td><td>0.5000</td><td>0.4800</td><td class="best">0.8000</td><td class="best">0.6000</td></tr>
+          </tbody>
+          <!-- 2017 -->
+          <tbody>
+            <tr><th scope="rowgroup" rowspan="3" class="yr">2017</th><td class="model">Gaussian Naive Bayes</td><td>128</td><td class="best">0.6797</td><td>0.6880</td><td class="best">0.9773</td><td class="best">0.8075</td></tr>
+            <tr><td class="model">K-Nearest Neighbors</td><td>128</td><td>0.6719</td><td class="best">0.6983</td><td>0.9205</td><td>0.7941</td></tr>
+            <tr><td class="model">Perceptron</td><td>128</td><td>0.5547</td><td>0.6962</td><td>0.6250</td><td>0.6587</td></tr>
+          </tbody>
+          <!-- 2018 -->
+          <tbody>
+            <tr><th scope="rowgroup" rowspan="3" class="yr">2018</th><td class="model">Gaussian Naive Bayes</td><td>128</td><td>0.5703</td><td>0.6000</td><td class="best">0.7703</td><td class="best">0.6746</td></tr>
+            <tr><td class="model">K-Nearest Neighbors</td><td>128</td><td class="best">0.5781</td><td class="best">0.6429</td><td>0.6081</td><td>0.6250</td></tr>
+            <tr><td class="model">Perceptron</td><td>128</td><td>0.5469</td><td class="best">0.6429</td><td>0.4865</td><td>0.5538</td></tr>
+          </tbody>
+          <!-- 2019 -->
+          <tbody>
+            <tr><th scope="rowgroup" rowspan="3" class="yr">2019</th><td class="model">Gaussian Naive Bayes</td><td>128</td><td>0.5156</td><td>0.5000</td><td class="best">0.6129</td><td class="best">0.5507</td></tr>
+            <tr><td class="model">K-Nearest Neighbors</td><td>128</td><td class="best">0.5781</td><td class="best">0.5909</td><td>0.4194</td><td>0.4906</td></tr>
+            <tr><td class="model">Perceptron</td><td>128</td><td>0.5391</td><td>0.5789</td><td>0.1774</td><td>0.2716</td></tr>
+          </tbody>
+          <!-- 2020 -->
+          <tbody>
+            <tr><th scope="rowgroup" rowspan="3" class="yr">2020</th><td class="model">Gaussian Naive Bayes</td><td>128</td><td>0.5703</td><td>0.5794</td><td>0.8611</td><td>0.6927</td></tr>
+            <tr><td class="model">K-Nearest Neighbors</td><td>128</td><td class="best">0.5938</td><td class="best">0.6042</td><td>0.8056</td><td>0.6905</td></tr>
+            <tr><td class="model">Perceptron</td><td>128</td><td>0.5625</td><td>0.5625</td><td class="best">1.0000</td><td class="best">0.7200</td></tr>
+          </tbody>
+          <!-- 2021 -->
+          <tbody>
+            <tr><th scope="rowgroup" rowspan="3" class="yr">2021</th><td class="model">Gaussian Naive Bayes</td><td>128</td><td>0.5938</td><td>0.6218</td><td class="best">0.9136</td><td>0.7400</td></tr>
+            <tr><td class="model">K-Nearest Neighbors</td><td>128</td><td class="best">0.6484</td><td>0.6607</td><td class="best">0.9136</td><td class="best">0.7668</td></tr>
+            <tr><td class="model">Perceptron</td><td>128</td><td>0.5703</td><td class="best">0.6711</td><td>0.6296</td><td>0.6497</td></tr>
+          </tbody>
+          <!-- 2022 -->
+          <tbody>
+            <tr><th scope="rowgroup" rowspan="3" class="yr">2022</th><td class="model">Gaussian Naive Bayes</td><td>128</td><td class="best">0.6719</td><td class="best">0.7000</td><td>0.8537</td><td class="best">0.7692</td></tr>
+            <tr><td class="model">K-Nearest Neighbors</td><td>128</td><td>0.6250</td><td>0.6545</td><td class="best">0.8780</td><td>0.7500</td></tr>
+            <tr><td class="model">Perceptron</td><td>128</td><td>0.5547</td><td>0.6712</td><td>0.5976</td><td>0.6323</td></tr>
+          </tbody>
+          <!-- 2023 -->
+          <tbody>
+            <tr><th scope="rowgroup" rowspan="3" class="yr">2023</th><td class="model">Gaussian Naive Bayes</td><td>128</td><td>0.4609</td><td>0.4028</td><td class="best">0.5273</td><td class="best">0.4567</td></tr>
+            <tr><td class="model">K-Nearest Neighbors</td><td>128</td><td class="best">0.5312</td><td class="best">0.4545</td><td>0.4545</td><td>0.4545</td></tr>
+            <tr><td class="model">Perceptron</td><td>128</td><td>0.4609</td><td>0.3871</td><td>0.4364</td><td>0.4103</td></tr>
+          </tbody>
+          <!-- 2024 -->
+          <tbody>
+            <tr><th scope="rowgroup" rowspan="3" class="yr">2024</th><td class="model">Gaussian Naive Bayes</td><td>128</td><td>0.7109</td><td>0.6667</td><td>0.1500</td><td>0.2449</td></tr>
+            <tr><td class="model">K-Nearest Neighbors</td><td>128</td><td class="best">0.7266</td><td class="best">0.8571</td><td>0.1500</td><td>0.2553</td></tr>
+            <tr><td class="model">Perceptron</td><td>128</td><td>0.6953</td><td>0.5238</td><td class="best">0.2750</td><td class="best">0.3607</td></tr>
+          </tbody>
+          <!-- 2025 -->
+          <tbody>
+            <tr><th scope="rowgroup" rowspan="3" class="yr">2025</th><td class="model">Gaussian Naive Bayes</td><td>128</td><td>0.5547</td><td>0.5408</td><td class="best">0.8154</td><td class="best">0.6503</td></tr>
+            <tr><td class="model">K-Nearest Neighbors</td><td>128</td><td>0.4609</td><td>0.4778</td><td>0.6615</td><td>0.5548</td></tr>
+            <tr><td class="model">Perceptron</td><td>128</td><td class="best">0.5625</td><td class="best">0.5474</td><td>0.8000</td><td>0.6500</td></tr>
+          </tbody>
+          <!-- 2026 -->
+          <tbody>
+            <tr><th scope="rowgroup" rowspan="3" class="yr">2026</th><td class="model">Gaussian Naive Bayes</td><td>64</td><td>0.4844</td><td>0.5333</td><td>0.2353</td><td>0.3265</td></tr>
+            <tr><td class="model">K-Nearest Neighbors</td><td>64</td><td class="best">0.5469</td><td class="best">0.5714</td><td>0.5882</td><td>0.5797</td></tr>
+            <tr><td class="model">Perceptron</td><td>64</td><td>0.5312</td><td>0.5500</td><td class="best">0.6471</td><td class="best">0.5946</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Summary Tables (All Years)</h3>
+
+      <!-- average of each metric over all 16 years -->
+      <h3>16-Year Averages</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Method / Model</th>
+              <th>Configuration</th>
+              <th>Average Accuracy</th>
+              <th>Average Precision</th>
+              <th>Average Recall</th>
+              <th>Average F1-Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Gaussian Naive Bayes</td>
+              <td> k= 1e-9</td>
+              <td>0.5952</td>
+              <td>0.6063</td>
+              <td>0.6941</td>
+              <td>0.6110</td>
+            </tr>
+            <tr>
+              <td>K-Nearest Neighbors</td>
+              <td>k = 19, p = 2</td>
+              <td>0.6196</td>
+              <td>0.6417</td>
+              <td>0.6879</td>
+              <td>0.6386</td>
+            </tr>
+            <tr>
+              <td>Perceptron</td>
+              <td>Learning rate = 0.01, Max epochs = 100</td>
+              <td>0.5801</td>
+              <td>0.5997</td>
+              <td>0.6736</td>
+              <td>0.6130</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- which model did best -->
+      <h3>Findings</h3>
+      <p>K-Nearest Neighbor emerged as the strongest overall algorithm under the 80/20 per-year split, 
+        achieving the highest 16-year average Accuracy (0.6196), precision (0.6417), 
+        and f1-score (0.6386), while ranking first or tied in accuracy in 10 out of 16 years and precision in 9 out of 16 years.</p>
+      <p>Perceptron achieved the second-highest 16 year average f1-score (0.6130), ahead of Gaussian Naive Bayes (0.6110), 
+        alongside 0.5801 average accuracy, 0.5997 average precision, and 0.6736 average recall.</p>
+      <p>Gaussian Naive Bayes recorded the highest 16 year average recall (0.6941), ranking first or tied in recall in 
+        10 out of 16 years and f1-score in 8 out of 16 years.</p>
+    </section>
+
+    <!-- VI. DISCUSSION  -->
+    <section id="discussion">
+      <h2>Discussion</h2>
+      <p>[PLACEHOLDER]</p>
+
+      <h3>Limitations</h3>
+      <p>[PLACEHOLDER]</p>
+
+      <h3>Possible Improvements</h3>
+      <p>[PLACEHOLDER]</p>
+    </section>
+
+    <!-- VII. CONCLUSION -->
+    <!-- TODO: placeholder -->
+    <section id="conclusion">
+      <h2>Conclusion</h2>
+      <p>[PLACEHOLDER]</p>
+    </section>
+
+    <!-- VIII. REFERENCES  -->
+    <section id="references">
+      <h2>References</h2>
+
+      <h3>Sources</h3>
+      <ul>
+        <li><a href="https://psa.gov.ph/">https://psa.gov.ph/</a></li>
+        <li><a href="https://www.geeksforgeeks.org/machine-learning/k-nearest-neighbours/">https://www.geeksforgeeks.org/machine-learning/k-nearest-neighbours/</a></li>
+        <li><a href="https://stats.stackexchange.com/questions/163088/how-to-use-log-probabilities-for-gaussian-naive-bayes">https://stats.stackexchange.com/questions/163088/how-to-use-log-probabilities-for-gaussian-naive-bayes</a></li>
+        <li><a href="https://www.cs.toronto.edu/~urtasun/courses/CSC411/tutorial4.pdf">https://www.cs.toronto.edu/~urtasun/courses/CSC411/tutorial4.pdf</a></li>
+        <li><a href="https://www.geeksforgeeks.org/machine-learning/gaussian-naive-bayes/">https://www.geeksforgeeks.org/machine-learning/gaussian-naive-bayes/</a></li>
+        <li><a href="https://www.saedsayad.com/naive_bayesian.htm">https://www.saedsayad.com/naive_bayesian.htm</a></li>
+        <li><a href="https://www.geeksforgeeks.org/k-nearest-neighbours/">https://www.geeksforgeeks.org/k-nearest-neighbours/</a></li>
+        <li><a href="https://www.saedsayad.com/k_nearest_neighbors.htm">https://www.saedsayad.com/k_nearest_neighbors.htm</a></li>
+        <li><a href="https://www.krishnaik.in/ai-tutorials/statistics/standardization-and-normalization">https://www.krishnaik.in/ai-tutorials/statistics/standardization-and-normalization</a></li>
+        <li><a href="https://www.geeksforgeeks.org/deep-learning/what-is-perceptron-the-simplest-artificial-neural-network/">https://www.geeksforgeeks.org/deep-learning/what-is-perceptron-the-simplest-artificial-neural-network/</a></li>
+        <li><a href="https://www.w3schools.com/ai/ai_perceptrons.asp">https://www.w3schools.com/ai/ai_perceptrons.asp</a></li>
+        <li><a href="https://www.geeksforgeeks.org/machine-learning/metrics-for-machine-learning-model/">https://www.geeksforgeeks.org/machine-learning/metrics-for-machine-learning-model/</a></li>
+      </ul>
+
+      <!-- TODO: placeholder -->
+      <h3>Code and AI Tool Disclosure</h3>
+      <p>[PLACEHOLDER: disclose any code or AI tool use]</p>
+    </section>
+
+    <!-- IX. LINKS ============================ -->
+    <section id="links">
+      <h2>Links</h2>
+      <ul>
+        <li><a href="https://github.com/aaladines/CMSC-170-PROJECT" target = "blank">GitHub Repository</a></li>
+        <li><a href="https://canva.link/6uxy0vnf1rpjtdk" target = "blank">Canva Presentation Slides</a></li>
+      </ul>
+    </section>
+
+  </main>
+
+</body>
+
+</html>
