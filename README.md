@@ -52,10 +52,10 @@ python data_loader.py
 python main.py
 ```
 
-## VII. Dataset Link
+## Dataset Link
 - [Vegetables and Root Crops: Volume of Production, by Region, Province, Quarter, and Semester, 2010-2026](https://openstat.psa.gov.ph/PXWeb/pxweb/en/DB/DB__2E__CS/0082E4EVCP3.px/?rxid=7b53d3cc-7504-4f45-a8af-781c15e70037)
 
-### IX. Task Log of Members
+### Task Log of Members
 
 **Ken Kristoffer F. Enrile**
 
