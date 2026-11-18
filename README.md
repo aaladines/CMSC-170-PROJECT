@@ -2,6 +2,9 @@
 
 A project that has at least three AI or machine learning methods to one dataset, implement them from scratch, and compare how well they perform.
 
+## GitHub IO Page Link
+https://aaladines.github.io/CMSC-170-PROJECT/
+
 ## How to Run on Linux/WSL
 
 ### I. Prerequisites
