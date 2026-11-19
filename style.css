@@ -1,11 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+
 /* ---------- Colors ---------- */
 :root {
-  --bg: #f4f4f5;      /* page background */
-  --card: #ffffff;    /* section / header background */
-  --text: #222222;
-  --muted: #666666;
-  --line: #d9d9db;    /* borders */
-  --shade: #ececed;   /* table headers, pills */
+/* [CHANGED] Replaced neutral gray palette with botanical off-white, white, and sage tones */
+  --bg: #f6f9f4;           /* soft botanical off-white page background */
+  --card: #ffffff;         /* crisp white card surface */
+  --text: #1c2b22;         /* deep charcoal-green body text */
+  --muted: #52665a;        /* muted sage-gray secondary text */
+  --line: #d6e4da;         /* subtle sage border */
+
+  /* [ADDED] Forest green and leaf green theme variables */
+  --green-dark: #14452f;   /* primary forest green (nav bar, table headers) */
+  --green-mid: #236b48;    /* secondary leaf green (subheadings, card accents) */
+  --green-light: #e6f2ea;  /* pale mint tint (row hover states) */
+
+  /* [ADDED] Harvest yellow theme variables */
+  --yellow: #f4b41a;       /* warm golden harvest yellow (accents, underlines) */
+  --yellow-soft: #fff8df;  /* soft cream-yellow highlight (year column) */
+  --yellow-badge: #ffefb8; /* golden cell highlight for .best scores */
 }
 
 /* base */
@@ -13,44 +25,109 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 4rem;
+}
+
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, sans-serif;
-  line-height: 1.6;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.65;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  color: var(--green-dark);
+  letter-spacing: -0.01em;
 }
 
 h2 {
-  margin: 0 0 1rem;
-  padding-bottom: .5rem;
-  border-bottom: 1px solid var(--line);
+  margin: 0 0 1.1rem;
+  padding-bottom: 0.6rem;
+  font-size: 1.45rem;
+  font-weight: 800;
+  border-bottom: 2px solid var(--line);
+  position: relative;
+}
+
+h2::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 68px;
+  height: 3px;
+  background: var(--yellow);
+  border-radius: 2px;
 }
 
 h3 {
   margin: 1.5rem 0 .5rem;
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: var(--green-mid);
+}
+
+h4 {
+  margin: 1.1rem 0 0.4rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+p {
+  margin: 0 0 0.95rem;
 }
 
 a {
-  color: var(--text);
+  color: var(--green-mid);
+  font-weight: 500;
+  text-decoration-color: var(--yellow);
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  color: var(--green-dark);
 }
 
 /* header and contents bar  */
 /* the side padding lines the text up with the content below */
 .hero,
 .toc ol {
-  padding: 1.5rem max(1.5rem, calc((100% - 1100px) / 2));
+  padding: 1.75rem max(1.5rem, calc((100% - 1100px) / 2));
 }
 
 .hero {
-  background: var(--card);
+  background: linear-gradient(135deg, #ffffff 0%, #f1f8f3 65%, #fef9e7 100%);
+  border-top: 6px solid var(--green-dark);
   border-bottom: 1px solid var(--line);
+}
+
+.hero h1 {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.6rem, 3vw, 2.15rem);
+  font-weight: 800;
+  color: var(--green-dark);
 }
 
 .hero h2 {
   border: 0;
-  font-size: .9rem;
-  color: var(--muted);
+  margin: 0 0 0.5rem;
+  padding: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--green-mid);
+}
+
+.hero h2::after {
+  display: none;
 }
 
 .hero ul {
@@ -62,17 +139,24 @@ a {
 }
 
 .hero li {
-  background: var(--shade);
-  padding: .1rem .75rem;
+  background: var(--card);
+  color: var(--green-dark);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--yellow);
+  font-size: 0.92rem;
+  font-weight: 600;
+  padding: 0.28rem 0.85rem;
   border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(20, 69, 47, 0.05);
 }
 
 .toc {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--card);
-  border-bottom: 1px solid var(--line);
+  background: var(--green-dark);
+  border-bottom: 3px solid var(--yellow);
+  box-shadow: 0 2px 10px rgba(20, 69, 47, 0.12);
 }
 
 .toc ol {
@@ -87,12 +171,19 @@ a {
 }
 
 .toc a {
-  color: var(--muted);
+  color: #e6f2ea;
+  font-size: 0.9rem;
+  font-weight: 600;
   text-decoration: none;
+  padding: 0.25rem 0.1rem;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
 
-.toc a:hover {
-  color: var(--text);
+.toc a:hover,
+.toc a:focus {
+  color: var(--yellow);
+  border-bottom-color: var(--yellow);
 }
 
 /* sections  */
@@ -105,9 +196,23 @@ main {
 main > section {
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-top: 1.5rem;
+  border-top: 4px solid var(--green-mid);
+  border-radius: 10px;
+  padding: 1.75rem;
+  margin-top: 1.65rem;
+  box-shadow: 0 4px 16px rgba(20, 69, 47, 0.05);
+}
+
+main ul {
+  padding-left: 1.25rem;
+}
+
+main li {
+  margin-bottom: 0.4rem;
+}
+
+main li::marker {
+  color: var(--green-mid);
 }
 
 li a {
@@ -117,6 +222,9 @@ li a {
 /*  tables  */
 .table-wrap {
   overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin-top: 0.75rem;
 }
 
 table {
@@ -131,14 +239,29 @@ td {
   text-align: left;
 }
 
-th {
-  background: var(--shade);
+thead th {
+  background: var(--green-dark);
+  color: #ffffff;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.88rem;
+  letter-spacing: 0.02em;
+}
+
+/* [ADDED] Subtle alternating row shading and mint hover highlight */
+tbody tr:nth-child(even) {
+  background: #fafcfa;
+}
+
+tbody tr:hover {
+  background: var(--green-light);
 }
 
 /* year comparison table */
 .year-table th,
 .year-table td {
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .year-table .model {
@@ -147,15 +270,25 @@ th {
 
 .year-table th.yr {
   text-align: center;
-  background: var(--card);
+  background: var(--yellow-soft);
+  color: var(--green-dark);
+  font-weight: 800;
+  border-right: 2px solid var(--yellow);
 }
 
 .year-table tbody {
   border-bottom: 2px solid var(--line);
 }
 
+/* [ADDED] Hover highlight across a full 3-row year group */
+.year-table tbody:hover td {
+  background: #f2f9f4;
+}
+
 .year-table td.best {
   font-weight: bold;
+  color: var(--green-dark);
+  background: var(--yellow-badge);
 }
 
 .note {
@@ -166,12 +299,16 @@ th {
 /* charts  */
 .chart-grid {
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem;
+  margin-top: 0.75rem;
 }
 
 .fig {
   border: 1px solid var(--line);
-  background: #fff;
+  border-radius: 10px;
+  background: var(--card);
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(20, 69, 47, 0.04);
 }
 
 .fig iframe {
