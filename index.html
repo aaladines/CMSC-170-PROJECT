@@ -401,17 +401,48 @@
       </p>
 
       <h3>Limitations</h3>
-      <p>[PLACEHOLDER]</p>
+      <p>
+        One limitation of the project is the limited number of features used for prediction. The models mainly rely on historical vegetable production data, such as the previous year's production, changes in production from the previous year, and changes in production from the previous quarter. However, vegetable production can also be affected by other factors, such as weather conditions, soil quality, pests, and farming practices. Since these factors are not included in our dataset, the models may not fully capture the reasons behind changes in vegetable production.
+      </p>
+
+      <p>
+        Each machine learning method also has its own limitations. Gaussian Naive Bayes assumes that the features are independent of one another given the class, which may not always be the case with historical production data. K-Nearest Neighbors relies on the similarity between data points, so its performance may depend on the selected number of neighbors and distance metric. Meanwhile, the Perceptron uses a linear decision boundary, which may not be able to represent more complex patterns in the data.
+      </p>
+
+      <p>
+        Another limitation is the availability of historical records. When previous production data is unavailable, some of the calculated features are assigned a value of zero. This may affect the predictions because the assigned value may not accurately represent the actual production trend. The results also show that the performance of the models varies across different years, suggesting that the production patterns are not always consistent.
+      </p>
 
       <h3>Possible Improvements</h3>
-      <p>[PLACEHOLDER]</p>
+      <p>
+        The models could be improved by including additional features that may influence vegetable production, such as rainfall, temperature, soil conditions, and other environmental factors. Including these variables may help the models better understand the factors that contribute to production increases or decreases. Using more historical data may also help the models recognize production patterns more effectively.
+      </p>
+
+      <p>
+        Another possible improvement is to experiment with different model parameters. For K-Nearest Neighbors, different values of k and distance metrics could be tested to determine which settings produce better results. For the Perceptron, different learning rates and maximum numbers of epochs could be explored. Other machine learning algorithms that can capture nonlinear relationships could also be tested and compared with the current methods.
+      </p>
+
+      <p>
+        Future experiments could also use additional evaluation methods to provide a more reliable assessment of model performance. Comparing accuracy, precision, recall, and F1-score is important because a model with high accuracy may still have difficulty identifying actual production increases or decreases.
+      </p>
     </section>
 
     <!-- VII. CONCLUSION -->
     <!-- TODO: placeholder -->
     <section id="conclusion">
       <h2>Conclusion</h2>
-      <p>[PLACEHOLDER]</p>
+
+      <p>
+        This project implemented three machine learning algorithms, Gaussian Naive Bayes, K-Nearest Neighbors, and Perceptron, to predict whether vegetable production would increase or decrease based on historical production data. The models were evaluated using accuracy, precision, recall, and F1-score across different years.
+      </p>
+
+      <p>
+        Based on the results, the performance of the three algorithms varied across years and evaluation metrics. No single method consistently achieved the best results, showing that the effectiveness of each algorithm depends on the patterns present in the data. The results also demonstrated that accuracy alone may not fully represent a model's performance, making the use of multiple evaluation metrics important.
+      </p>
+
+      <p>
+        Overall, the project demonstrated how machine learning can be applied to agricultural production data to classify production changes. However, the results also showed the limitations of relying only on historical production data. Incorporating additional factors and exploring other approaches may help improve the models' performance in future studies.
+      </p>
     </section>
 
     <!-- VIII. REFERENCES  -->
