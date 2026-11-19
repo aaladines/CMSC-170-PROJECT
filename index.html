@@ -372,7 +372,33 @@
     <!-- VI. DISCUSSION  -->
     <section id="discussion">
       <h2>Discussion</h2>
-      <p>[PLACEHOLDER]</p>
+
+      <h3>Overall Performance</h3>
+      <p>
+        The performance of Gaussian Naive Bayes (GNB), K-Nearest Neighbors (KNN), and Perceptron varied across the different years of the dataset. No single method consistently achieved the highest performance across all evaluation metrics. This suggest that predicting whether vegetable production increases or decreases is affected by varying patterns in the historical production data. 
+      </p>
+
+      <p>
+        Gaussian Naive Bayes performed particularly well in 2012, achieving an accuracy of 75.00%, recall of 100.00%, and an F1-score of 85.71%. Meanwhile, KNN achieved its highest accuracy in 2012 and in 2024, with 75.00% and 72.66%, respectively. The Perceptron also achieved an accuracy of 75.00% in 2012, but its performance varied considerably in other years. 
+      </p>
+
+      <p>
+        These differences indicate that the effectiveness of each method depends on the production patterns present in the training data and how well those patterns represent the records being tested. Although the models use historical production information, changes in production may not always follow consistent patterns from one year to another.
+      </p>
+
+      <h3> Analysis of Unusual Years </h3>
+
+      <p>
+        The year 2023 showed relatively poor performance across all three methods. Gaussian Naive Bayes and Perceptron both achieved an accuracy of 46.09%, while KNN achieved 53.12%. Their F1-scores were also low, ranging from 41.03% to 45.67%. This indicates that the models had difficulty correctly identifying increases and decreases in vegetable production during this particular year. 
+      </p>
+
+      <p>
+        In 2024, the models achieved relatively high accuracy, with Gaussian Naive Bayes at 71.09%, KNN at 72.66%, and Perceptron at 69.53%. However, their recall scores were considerably lower. Gaussian Naive Bayes and KNN both achieved a recall of 15.00%, while Perceptron achieved 27.50%. This shows that accuracy alone does not fully represent model performance, since the models were able to correctly classify many records overall, but missed a substantial number of actual production increases. 
+      </p>
+
+      <p>
+        The results in year 2016 also showed differences between the models. Gaussian Naive Bayes achieved a recall of only 20.00%, while KNN achieved 41.67%. The Perceptron performed better in identifying production increases, with a recall of 80.00%, although its accuracy was only 50.00%. These results demonstrate that the models respond differently to the production patterns present in each year's data.
+      </p>
 
       <h3>Limitations</h3>
       <p>[PLACEHOLDER]</p>
