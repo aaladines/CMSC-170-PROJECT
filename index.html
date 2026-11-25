@@ -26,13 +26,12 @@
   </header>
 
   <!-- NAVIGATION -->
-  <!-- table of contents where each link jumps to the section with the matching id  -->
+  <!-- table of contents aligned with the reorganized flow -->
   <nav class="toc">
     <ol>
       <li><a href="#problem">Background</a></li>
-      <li><a href="#dataset">Dataset Description</a></li>
-      <li><a href="#methods">Methods</a></li>
-      <li><a href="#setup">Data Setup</a></li>
+      <li><a href="#dataset">Dataset &amp; Split</a></li>
+      <li><a href="#methods">Methods &amp; Setup</a></li>
       <li><a href="#results">Results</a></li>
       <li><a href="#discussion">Discussion</a></li>
       <li><a href="#conclusion">Conclusion</a></li>
@@ -60,7 +59,7 @@
         decreases compared with the same quarter of the previous year using past data?</p>
     </section>
 
-    <!-- II. DATASET -->
+    <!-- II. DATASET AND SPLITTING -->
     <section id="dataset">
       <h2>Dataset Description</h2>
 
@@ -86,9 +85,19 @@
         <li>Each quarter was paired with the same quarter of the previous year, and pairs with missing observations were excluded.</li>
         <li>Production was labeled 1 if it increased and 0 if it decreased.</li>
       </ul>
+
+      <!-- Moved from Data Setup so all data preparation stays together -->
+      <h3>Data Splitting (Training/Testing)</h3>
+      <p>In training and splitting the data, the group used 80% for training and 20% for testing, 
+        applied separately within each year instead of once over the whole dataset. 
+        The rows of each year were assigned to the training or testing set using a random number generator, 
+        so that the testing data is not biased toward the later years or toward any one quarter, such as Q4. 
+        For the dataset, the total amount of available data was 9920 rows, hence the amount of available training and testing rows are 7936 and 1984, respectively. 
+        This gives 512 training and 128 testing rows for each year from 2011 to 2025, and 256 training and 64 testing rows for 2026. 
+      </p>
     </section>
 
-    <!-- III. METHODS  -->
+    <!-- III. METHODS AND EVALUATION SETUP -->
     <section id="methods">
       <h2>Methods</h2>
 
@@ -115,46 +124,8 @@
         approach of KNN and the probabilistic approach of Naive Bayes. By passing normalized input features through a step activation function and updating
          weights over several epochs, the Perceptron will attempt to learn a definitive boundary. If the agricultural data proves too noisy or not linearly 
          separable, observing its failure to converge will provide valuable insights for our evaluation discussion.</p>
-    </section>
 
-    <!-- IV. DATA SETUP  -->
-    <section id="setup">
-      <h2>Data Setup</h2>
-
-      <!-- 80/20 train-test split -->
-      <h3>Data Splitting (Training/Testing)</h3>
-        <p>In training and splitting the data, the group used 80% for training and 20% for testing, 
-        applied separately within each year instead of once over the whole dataset. 
-        The rows of each year were assigned to the training or testing set using a random number generator, 
-        so that the testing data is not biased toward the later years or toward any one quarter, such as Q4. 
-        For the dataset, the total amount of available data was 9920 rows, hence the amount of available training and testing rows are 7936 and 1984, respectively. 
-        This gives 512 training and 128 testing rows for each year from 2011 to 2025, and 256 training and 64 testing rows for 2026. 
-        </p>
-      
-        <!-- metrics used to score the three models, with their formulas -->
-      <h3>Evaluation Metrics</h3>
-      <p>To evaluate the performance of the three implemented machine learning algorithms, namely, Gaussian Naive Bayes (GNB), K-Nearest Neighbors (KNN), 
-        and Perceptron, we used four evaluation metrics: Accuracy, Precision, Recall, and F1-score.</p>
-
-      <!-- definitions of the confusion-matrix terms used in the formulas -->
-      <h4>Variables</h4>
-      <ul>
-        <li>True Positive (TP): The actual label is 1 and the predicted label is also 1.</li>
-        <li>True Negative (TN): The actual label is 0 and the predicted label is also 0.</li>
-        <li>False Positive (FP): The label is 0, but the predicted label is 1.</li>
-        <li>False Negative (FN): The label is 1, but the predicted label is 0.</li>
-      </ul>
-
-      <p><strong>Accuracy</strong> measures the proportion of correctly predicted records out of all testing records. 
-        It provides an overall measure of how often the model makes correct predictions.<br>Accuracy = (TP + TN) / (TP + TN + FP + FN)</p>
-      <p><strong>Precision</strong> measures the proportion of records predicted as an increase that actually increases. 
-        It indicates how reliable the model's positive predictions are.<br>Precision = TP / (TP + FP)</p>
-      <p><strong>Recall</strong> measures the proportion of actual increases that are correctly identified by the model. 
-        It indicates how well the model detects increases in crop production.<br>Recall = TP / (TP + FN)</p>
-      <p><strong>F1 score</strong> provides a combined measure of both Precision and Recall. This is useful for assessing the balance
-         between identifying actual increases and avoiding incorrect increase predictions.<br>F1 score = (2 * Precision * Recall) / (Precision + Recall)</p>
-
-      <!--settings used for each model -->
+      <!-- Moved from Data Setup right after model descriptions -->
       <h3>Hyperparameters</h3>
       <div class="table-wrap">
         <table>
@@ -180,16 +151,89 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Moved from Data Setup to lead directly into Results -->
+      <h3>Evaluation Metrics</h3>
+      <p>To evaluate the performance of the three implemented machine learning algorithms, namely, Gaussian Naive Bayes (GNB), K-Nearest Neighbors (KNN), 
+        and Perceptron, we used four evaluation metrics: Accuracy, Precision, Recall, and F1-score.</p>
+
+      <h4>Variables</h4>
+      <ul>
+        <li>True Positive (TP): The actual label is 1 and the predicted label is also 1.</li>
+        <li>True Negative (TN): The actual label is 0 and the predicted label is also 0.</li>
+        <li>False Positive (FP): The label is 0, but the predicted label is 1.</li>
+        <li>False Negative (FN): The label is 1, but the predicted label is 0.</li>
+      </ul>
+
+      <p><strong>Accuracy</strong> measures the proportion of correctly predicted records out of all testing records. 
+        It provides an overall measure of how often the model makes correct predictions.<br>Accuracy = (TP + TN) / (TP + TN + FP + FN)</p>
+      <p><strong>Precision</strong> measures the proportion of records predicted as an increase that actually increases. 
+        It indicates how reliable the model's positive predictions are.<br>Precision = TP / (TP + FP)</p>
+      <p><strong>Recall</strong> measures the proportion of actual increases that are correctly identified by the model. 
+        It indicates how well the model detects increases in crop production.<br>Recall = TP / (TP + FN)</p>
+      <p><strong>F1 score</strong> provides a combined measure of both Precision and Recall. This is useful for assessing the balance
+         between identifying actual increases and avoiding incorrect increase predictions.<br>F1 score = (2 * Precision * Recall) / (Precision + Recall)</p>
     </section>
 
-    <!-- V. RESULTS  -->
+    <!-- IV. RESULTS (SUMMARY & FINDINGS FIRST, THEN CHARTS, THEN FULL YEAR TABLE) -->
     <section id="results">
       <h2>Results</h2>
       <p>The three machine learning algorithms, Gaussian Naive Bayes (GNB), K-Nearest Neighbors (KNN), and Perceptron, were evaluated separately 
         for each year from 2011 - 2026. The results are presented through line graphs, with each graph showing the yearly performance of the three algorithms.</p>
 
-      <!-- four Plotly charts, one per metric. Each chart is its own HTML file
-           inside the tables_and_charts folder (generated by plots.py) -->
+      <h3>Summary Tables (All Years)</h3>
+
+      <h3>16-Year Averages</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Method / Model</th>
+              <th>Configuration</th>
+              <th>Average Accuracy</th>
+              <th>Average Precision</th>
+              <th>Average Recall</th>
+              <th>Average F1-Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Gaussian Naive Bayes</td>
+              <td> k= 1e-9</td>
+              <td>0.5952</td>
+              <td>0.6063</td>
+              <td>0.6941</td>
+              <td>0.6110</td>
+            </tr>
+            <tr>
+              <td>K-Nearest Neighbors</td>
+              <td>k = 19, p = 2</td>
+              <td>0.6196</td>
+              <td>0.6417</td>
+              <td>0.6879</td>
+              <td>0.6386</td>
+            </tr>
+            <tr>
+              <td>Perceptron</td>
+              <td>Learning rate = 0.01, Max epochs = 100</td>
+              <td>0.5801</td>
+              <td>0.5997</td>
+              <td>0.6736</td>
+              <td>0.6130</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Findings</h3>
+      <p>K-Nearest Neighbor emerged as the strongest overall algorithm under the 80/20 per-year split, 
+        achieving the highest 16-year average Accuracy (0.6196), precision (0.6417), 
+        and f1-score (0.6386), while ranking first or tied in accuracy in 10 out of 16 years and precision in 9 out of 16 years.</p>
+      <p>Perceptron achieved the second-highest 16 year average f1-score (0.6130), ahead of Gaussian Naive Bayes (0.6110), 
+        alongside 0.5801 average accuracy, 0.5997 average precision, and 0.6736 average recall.</p>
+      <p>Gaussian Naive Bayes recorded the highest 16 year average recall (0.6941), ranking first or tied in recall in 
+        10 out of 16 years and f1-score in 8 out of 16 years.</p>
+
       <h3>Line Graphs</h3>
       <div class="chart-grid">
         <div class="fig"><iframe src="tables_and_charts/accuracy.html" title="Accuracy per Year" loading="lazy"></iframe></div>
@@ -198,7 +242,6 @@
         <div class="fig"><iframe src="tables_and_charts/f1_score.html" title="F1-Score per Year" loading="lazy"></iframe></div>
       </div>
 
-      <!-- year-by-year comparison. Each year is one with three rows (GNB, KNN, Perceptron). -->
       <h3>Comparative Model Results by Year</h3>
       <div class="table-wrap year-scroll">
         <table class="year-table">
@@ -312,64 +355,9 @@
           </tbody>
         </table>
       </div>
-
-      <h3>Summary Tables (All Years)</h3>
-
-      <!-- average of each metric over all 16 years -->
-      <h3>16-Year Averages</h3>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Method / Model</th>
-              <th>Configuration</th>
-              <th>Average Accuracy</th>
-              <th>Average Precision</th>
-              <th>Average Recall</th>
-              <th>Average F1-Score</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Gaussian Naive Bayes</td>
-              <td> k= 1e-9</td>
-              <td>0.5952</td>
-              <td>0.6063</td>
-              <td>0.6941</td>
-              <td>0.6110</td>
-            </tr>
-            <tr>
-              <td>K-Nearest Neighbors</td>
-              <td>k = 19, p = 2</td>
-              <td>0.6196</td>
-              <td>0.6417</td>
-              <td>0.6879</td>
-              <td>0.6386</td>
-            </tr>
-            <tr>
-              <td>Perceptron</td>
-              <td>Learning rate = 0.01, Max epochs = 100</td>
-              <td>0.5801</td>
-              <td>0.5997</td>
-              <td>0.6736</td>
-              <td>0.6130</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- which model did best -->
-      <h3>Findings</h3>
-      <p>K-Nearest Neighbor emerged as the strongest overall algorithm under the 80/20 per-year split, 
-        achieving the highest 16-year average Accuracy (0.6196), precision (0.6417), 
-        and f1-score (0.6386), while ranking first or tied in accuracy in 10 out of 16 years and precision in 9 out of 16 years.</p>
-      <p>Perceptron achieved the second-highest 16 year average f1-score (0.6130), ahead of Gaussian Naive Bayes (0.6110), 
-        alongside 0.5801 average accuracy, 0.5997 average precision, and 0.6736 average recall.</p>
-      <p>Gaussian Naive Bayes recorded the highest 16 year average recall (0.6941), ranking first or tied in recall in 
-        10 out of 16 years and f1-score in 8 out of 16 years.</p>
     </section>
 
-<!-- VI. DISCUSSION  -->
+    <!-- V. DISCUSSION -->
     <section id="discussion">
       <h2>Discussion</h2>
 
@@ -423,7 +411,7 @@
       </p>
     </section>
 
-    <!-- VII. CONCLUSION -->
+    <!-- VI. CONCLUSION -->
     <section id="conclusion">
       <h2>Conclusion</h2>
 
@@ -440,7 +428,7 @@
       </p>
     </section>
 
-    <!-- VIII. REFERENCES  -->
+    <!-- VII. REFERENCES -->
     <section id="references">
       <h2>References</h2>
 
@@ -483,7 +471,7 @@
       </ul>
     </section>
 
-    <!-- IX. LINKS  -->
+    <!-- VIII. LINKS -->
     <section id="links">
       <h2>Links</h2>
       <ul>
