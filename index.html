@@ -100,30 +100,31 @@
     <!-- III. METHODS AND EVALUATION SETUP -->
     <section id="methods">
       <h2>Methods</h2>
+      <p>Each year from 2011 to 2026 is evaluated independently using the same deterministic 80/20 split (512 training and 128 testing records per full year; 256 training and 64 testing records in 2026). Across all three classifiers, every regional crop quarter is represented by three continuous logarithmic features engineered from <code>dataset_prepared.csv</code>: (1) <strong>log previous-year same-quarter volume</strong>, <code>log(1 + prev_q)</code>; (2) <strong>prior year-over-year log change</strong> from the preceding year's matching quarter; and (3) <strong>prior quarter-over-quarter log change</strong> from the immediately preceding quarter (defaulting to <code>0.0</code> when earlier historical quarters are unavailable).</p>
 
       <h3>K-Nearest Neighbors (KNN)</h3>
-      <p>KNN is an instance-based learning algorithm that classifies a new data point by finding the k most similar historical samples in the dataset 
-        and taking a majority vote of their outcomes. This method is highly appropriate for our problem because agricultural patterns are often 
-        cyclical and localized. Provinces with similar recent production trends and seasonal positions are likely to experience similar future outcomes. 
-        Because KNN makes no underlying assumptions about the mathematical distribution of the data, it can effectively capture these localized, 
-        repeating patterns that a global model might overlook. By calculating the Euclidean distance between standardized features 
-        (such as previous year-over-year changes and log volumes), KNN will predict whether a province's quarterly production will 
-        increase or decrease based on what occurred during historically similar quarters.</p>
+      <p>In our implementation (<code>k_nearest_neighbor.py</code>), KNN classifies each test crop-region quarter by comparing its recent production scale and growth trajectory against historical records within the same evaluation year:</p>
+      <ul>
+        <li><strong>Per-Year Z-Score Standardization:</strong> Before computing distances, each year's training features are standardized using their training mean and standard deviation (<code>(x - mean) / std</code>, setting <code>std = 1.0</code> if zero variance occurs), and the same parameters are applied to that year's test set so large log-volume values do not overpower smaller log-change features.</li>
+        <li><strong>Minkowski / Euclidean Distance (<em>p</em> = 2):</strong> For every standardized test record, the model calculates the Euclidean distance <code>d(x, y) = (&Sigma;|x<sub>i</sub> - y<sub>i</sub>|<sup>2</sup>)<sup>1/2</sup></code> across all three features against every training sample in that year.</li>
+        <li><strong>Neighborhood Voting (<em>k</em> = 19):</strong> Guided by the square-root heuristic (<code>k &approx; &radic;N<sub>train</sub></code>, spanning 16.00 to 22.63 for 256–512 training rows), the classifier selects the <strong>19 nearest neighbors</strong>—an odd count chosen to prevent voting ties—and assigns <strong>Class 1</strong> (production increase) or <strong>Class 0</strong> (decrease/stagnant) by majority vote.</li>
+      </ul>
 
-      <h3>Gaussian Naive Bayes</h3>
-      <p>Gaussian Naive Bayes is a probabilistic, generative classifier based on Bayes' Theorem that estimates the mean and variance of each feature 
-        for both the "increase" and "decrease" classes. It is suitable for this problem because our dataset consists of continuous numerical features 
-        (such as production volume in metric tons), allowing the Gaussian variant to model these features without requiring us to discretize or categorize 
-        the continuous data. While the assumption of feature independence is likely violated in time-series agricultural data (since lagged production 
-        changes are correlated), using Gaussian Naive Bayes serves as an excellent probabilistic baseline that contrasts sharply with the other chosen methods.</p>
+      <h3>Gaussian Naive Bayes (GNB)</h3>
+      <p>In our implementation (<code>gaussian_naive_bayes.py</code>), Gaussian Naive Bayes models the continuous distribution of our three logarithmic production features directly without discretization:</p>
+      <ul>
+        <li><strong>Class Separation and Empirical Priors:</strong> Within each yearly training split, records are grouped into Class 0 (decrease) and Class 1 (increase) to compute prior probabilities <code>P(c) = n<sub>c</sub> / N<sub>train</sub></code>, along with each class's feature-wise sample mean (<code>&mu;<sub>c,j</sub></code>) and variance (<code>&sigma;<sup>2</sup><sub>c,j</sub></code>) on the raw logarithmic features.</li>
+        <li><strong>Variance Smoothing (<em>k</em> = 1e-9):</strong> To prevent division-by-zero or numerical underflow when a crop subset has minimal variation, a smoothing term <code>&epsilon; = 10<sup>-9</sup> &times; max(&sigma;<sup>2</sup>)</code> is added to every class-feature variance.</li>
+        <li><strong>Gaussian Likelihood Classification:</strong> For each test quarter, the model evaluates the univariate Gaussian probability density <code>P(x<sub>j</sub> | c)</code> across all three features and multiplies them by the class prior, predicting <strong>Class 1</strong> whenever <code>P(x | 1)&middot;P(1) &ge; P(x | 0)&middot;P(0)</code> and <strong>Class 0</strong> otherwise.</li>
+      </ul>
 
       <h3>Perceptron</h3>
-      <p>The Perceptron is a linear classifier that iteratively learns a weight vector and bias to draw a separating hyperplane between the two classes. 
-        This algorithm is appropriate for our project because it directly tests whether agricultural production increases and decreases can be 
-        linearly separated within our feature space. It provides a simple, efficient linear baseline that heavily contrasts with both the instance-based 
-        approach of KNN and the probabilistic approach of Naive Bayes. By passing normalized input features through a step activation function and updating
-         weights over several epochs, the Perceptron will attempt to learn a definitive boundary. If the agricultural data proves too noisy or not linearly 
-         separable, observing its failure to converge will provide valuable insights for our evaluation discussion.</p>
+      <p>In our implementation (<code>perceptron.py</code>), the Perceptron tests whether quarterly production increases and decreases can be separated by a single linear hyperplane in three-dimensional feature space:</p>
+      <ul>
+        <li><strong>Standardization and Bipolar Label Mapping:</strong> Each yearly split undergoes Z-score standardization fitted on the training set, while binary target labels <code>0</code> and <code>1</code> are mapped to <code>-1</code> (decrease) and <code>+1</code> (increase).</li>
+        <li><strong>Iterative Weight Updates (<em>&eta;</em> = 0.01, Max Epochs = 100):</strong> Starting from zero weights (<code>w = [0, 0, 0]</code>) and zero bias (<code>b = 0.0</code>), the model passes through the yearly training records for up to 100 epochs, computing <code>net = w&middot;x + b</code> and applying a signum step activation (<code>+1</code> if <code>net &ge; 0</code>, else <code>-1</code>).</li>
+        <li><strong>Error-Driven Boundary Adjustment:</strong> Whenever a training record is misclassified (<code>error = y - prediction &ne; 0</code>), weights and bias update via <code>w &larr; w + 0.01 &times; error &times; x</code> and <code>b &larr; b + 0.01 &times; error</code>, stopping early only if an entire epoch produces zero updates.</li>
+      </ul>
 
       <!-- Moved from Data Setup right after model descriptions -->
       <h3>Hyperparameters</h3>
