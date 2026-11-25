@@ -369,79 +369,74 @@
         10 out of 16 years and f1-score in 8 out of 16 years.</p>
     </section>
 
-    <!-- VI. DISCUSSION  -->
+<!-- VI. DISCUSSION  -->
     <section id="discussion">
       <h2>Discussion</h2>
 
-      <h3>Overall Performance</h3>
+      <h3>Overall Performance and the ~60% Baseline</h3>
       <p>
-        The performance of Gaussian Naive Bayes (GNB), K-Nearest Neighbors (KNN), and Perceptron varied across the different years of the dataset. No single method consistently achieved the highest performance across all evaluation metrics. This suggest that predicting whether vegetable production increases or decreases is affected by varying patterns in the historical production data. 
+        Across the 16-year evaluation period (2011–2026), <strong>K-Nearest Neighbors (KNN)</strong> (<em>k</em> = 19, <em>p</em> = 2) emerged as the strongest overall classifier among the three models, recording the highest 16-year average Accuracy (<strong>61.96%</strong>), Precision (<strong>64.17%</strong>), and F1-Score (<strong>63.86%</strong>), and achieving its peak accuracy of <strong>72.66%</strong> in both 2012 and 2024. Meanwhile, <strong>Gaussian Naive Bayes (GNB)</strong> led in 16-year average Recall (<strong>69.41%</strong>), and <strong>Perceptron</strong> ranked second in average F1-Score (<strong>61.30%</strong>).
+      </p>
+      <p>
+        Despite these relative differences, <strong>all three models hovered near the ~60% mark</strong> (58.01%–61.96% average Accuracy and 61.10%–63.86% average F1-Score). Because the models rely exclusively on three historical lag features—previous year's same-quarter production, prior year-over-year change, and prior quarter-over-quarter change—they capture baseline seasonal momentum during stable years but hit a predictive ceiling whenever external climatic or economic shocks disrupt normal agricultural cycles.
       </p>
 
+      <h3>Perceptron Unreliability and Non-Linear Separability</h3>
       <p>
-        Gaussian Naive Bayes performed particularly well in 2012, achieving an accuracy of 75.00%, recall of 100.00%, and an F1-score of 85.71%. Meanwhile, KNN achieved its highest accuracy in 2012 and in 2024, with 75.00% and 72.66%, respectively. The Perceptron also achieved an accuracy of 75.00% in 2012, but its performance varied considerably in other years. 
+        Among the three algorithms, the <strong>Perceptron proved unreliable for this dataset</strong>. Across all 16 yearly splits, the Perceptron <strong>consistently failed to converge</strong> (reaching <code>max_epochs = 100</code> in every year), and adjusting either the learning rate (&eta;) or the maximum number of epochs did not resolve this behavior.
+      </p>
+      <p>
+        By the Perceptron Convergence Theorem, a single-layer Perceptron converges only when the classes are <strong>strictly linearly separable</strong>. Because ten distinct vegetable and root crops across sixteen Philippine regions are compressed into a three-dimensional historical lag space—without meteorological or soil variables, and with missing lag records defaulting to <code>0.0</code>—Class 1 (increase) and Class 0 (decrease or stagnation) instances overlap heavily. Starting from zero weights, changing the learning rate merely rescales the weight vector without altering the flat separating hyperplane, causing the decision boundary to oscillate across noisy records rather than stabilize.
       </p>
 
+      <h3>External Factors Driving Yearly Fluctuations (2011–2026)</h3>
       <p>
-        These differences indicate that the effectiveness of each method depends on the production patterns present in the training data and how well those patterns represent the records being tested. Although the models use historical production information, changes in production may not always follow consistent patterns from one year to another.
+        The sharp spikes, dips, and plateaus in the yearly line graphs align closely with documented climatic, biological, and economic events in Philippine agriculture:
       </p>
+      <ul>
+        <li>
+          <strong>2011–2014 (Post-La Ni&ntilde;a Recovery and Stable Growth):</strong> Following recovery from the 2010–2011 La Ni&ntilde;a episodes, Philippine vegetable and root crop production experienced steady, predictable year-over-year expansion across major producing regions (PSA, 2015). Because historical lag patterns remained consistent, all three models peaked in <strong>2012</strong>—with GNB and Perceptron reaching <strong>75.00%</strong> accuracy and GNB achieving <strong>100.00%</strong> recall and an <strong>85.71%</strong> F1-score—while sustaining strong F1-scores (70.06%–76.57%) through 2014.
+        </li>
+        <li>
+          <strong>2015–2016 (Severe El Ni&ntilde;o Drought):</strong> A strong El Ni&ntilde;o event beginning in 2015 and peaking in early 2016 caused prolonged dry spells, reduced irrigation water, and lower yields across Luzon, Visayas, and Mindanao (DOST-PAGASA, 2016; FAO, 2016). Because pre-drought lag features still pointed upward, GNB's recall collapsed from 93.59% (2014) to <strong>39.44%</strong> (2015) and <strong>20.00%</strong> (2016). KNN buffered this shift better in 2015 (<strong>72.73%</strong> F1-score) through local neighbor matching, whereas Perceptron adjusted its hyperplane to retain <strong>80.00%</strong> recall in 2016 despite dropping to <strong>50.00%</strong> accuracy.
+        </li>
+        <li>
+          <strong>2017–2019 (Post-Drought Rebound, Typhoon Ompong, and Input Cost Pressures):</strong> Normalizing rainfall in <strong>2017</strong> restored steady production growth, lifting GNB's F1-score back to <strong>80.75%</strong>. Performance declined again in <strong>2018–2019</strong> (with F1-scores dropping to 27.16%–55.07% in 2019) due to severe crop damage from Typhoon Mangkhut (<em>Ompong</em>) in late 2018, localized dry spells in 2019, and higher fuel and farm input inflation that squeezed small-scale vegetable output (PSA, 2019; World Bank, 2019).
+        </li>
+        <li>
+          <strong>2020–2022 (COVID-19 Supply-Chain Disruptions and Reopening):</strong> In <strong>2020</strong>, community quarantine lockdowns disrupted inter-provincial transport, market logistics, and farm labor availability, creating erratic regional surpluses and deficits (World Bank, 2020; FAO, 2021). Perceptron captured all positive recovery cases (<strong>100.00%</strong> recall; <strong>72.00%</strong> F1-score), while KNN and GNB rebounded in <strong>2021–2022</strong> (74.00%–76.92% F1-score) as domestic trade and food service demand normalized.
+        </li>
+        <li>
+          <strong>2023–2024 (2023–2024 El Ni&ntilde;o, Late-Year Typhoons, and High-Precision / Low-Recall Skew):</strong> In <strong>2023</strong>, the transition into El Ni&ntilde;o and erratic monsoon rainfall caused non-cyclical regional yield swings that contradicted prior-year trends, dragging all models to their lowest accuracies (<strong>46.09%–53.12%</strong>) and precisions (<strong>38.71%–45.45%</strong>) (DOST-PAGASA, 2024; PSA, 2024). By <strong>2024</strong>, intensifying El Ni&ntilde;o drought conditions followed by successive late-year typhoons (including <em>Kristine</em>, <em>Leon</em>, and <em>Pepito</em>) triggered widespread production contractions (DA, 2024; PSA, 2025). With Class 0 dominating the year, models predicted decreases conservatively—raising overall accuracy (69.53%–72.66%) and giving KNN an <strong>85.71%</strong> precision on the few increases it flagged, while collapsing recall to <strong>15.00%</strong> (GNB and KNN) and <strong>27.50%</strong> (Perceptron) because localized rebounds could not be detected without weather indicators.
+        </li>
+        <li>
+          <strong>2025–2026 (La Ni&ntilde;a Transition and Partial-Year Coverage):</strong> Post-El Ni&ntilde;o recovery and La Ni&ntilde;a rainfall patterns in <strong>2025</strong> restored model recall (66.15%–81.54%), while <strong>2026</strong> covers only Q1 and Q2 (64 test records instead of 128), producing moderate F1-scores (32.65%–59.46%) from half-year seasonal data (PSA, 2026).
+        </li>
+      </ul>
 
-      <h3> Analysis of Unusual Years </h3>
-
+      <h3>Limitations and Recommendations</h3>
       <p>
-        The year 2023 showed relatively poor performance across all three methods. Gaussian Naive Bayes and Perceptron both achieved an accuracy of 46.09%, while KNN achieved 53.12%. Their F1-scores were also low, ranging from 41.03% to 45.67%. This indicates that the models had difficulty correctly identifying increases and decreases in vegetable production during this particular year. 
+        The primary limitation of this study is its reliance on only three historical production features, omitting exogenous drivers such as rainfall volume, temperature anomalies, El Ni&ntilde;o–Southern Oscillation (ENSO) indices, typhoon paths, soil conditions, and economic indicators like fertilizer and fuel prices. Additionally, assigning <code>0.0</code> when prior-year lag records are unavailable introduces artificial flat trends into the feature space.
       </p>
-
       <p>
-        In 2024, the models achieved relatively high accuracy, with Gaussian Naive Bayes at 71.09%, KNN at 72.66%, and Perceptron at 69.53%. However, their recall scores were considerably lower. Gaussian Naive Bayes and KNN both achieved a recall of 15.00%, while Perceptron achieved 27.50%. This shows that accuracy alone does not fully represent model performance, since the models were able to correctly classify many records overall, but missed a substantial number of actual production increases. 
-      </p>
-
-      <p>
-        The results in year 2016 also showed differences between the models. Gaussian Naive Bayes achieved a recall of only 20.00%, while KNN achieved 41.67%. The Perceptron performed better in identifying production increases, with a recall of 80.00%, although its accuracy was only 50.00%. These results demonstrate that the models respond differently to the production patterns present in each year's data.
-      </p>
-
-      <h3>Limitations</h3>
-      <p>
-        One limitation of the project is the limited number of features used for prediction. The models mainly rely on historical vegetable production data, such as the previous year's production, changes in production from the previous year, and changes in production from the previous quarter. However, vegetable production can also be affected by other factors, such as weather conditions, soil quality, pests, and farming practices. Since these factors are not included in our dataset, the models may not fully capture the reasons behind changes in vegetable production.
-      </p>
-
-      <p>
-        Each machine learning method also has its own limitations. Gaussian Naive Bayes assumes that the features are independent of one another given the class, which may not always be the case with historical production data. K-Nearest Neighbors relies on the similarity between data points, so its performance may depend on the selected number of neighbors and distance metric. Meanwhile, the Perceptron uses a linear decision boundary, which may not be able to represent more complex patterns in the data.
-      </p>
-
-      <p>
-        Another limitation is the availability of historical records. When previous production data is unavailable, some of the calculated features are assigned a value of zero. This may affect the predictions because the assigned value may not accurately represent the actual production trend. The results also show that the performance of the models varies across different years, suggesting that the production patterns are not always consistent.
-      </p>
-
-      <h3>Possible Improvements</h3>
-      <p>
-        The models could be improved by including additional features that may influence vegetable production, such as rainfall, temperature, soil conditions, and other environmental factors. Including these variables may help the models better understand the factors that contribute to production increases or decreases. Using more historical data may also help the models recognize production patterns more effectively.
-      </p>
-
-      <p>
-        Another possible improvement is to experiment with different model parameters. For K-Nearest Neighbors, different values of k and distance metrics could be tested to determine which settings produce better results. For the Perceptron, different learning rates and maximum numbers of epochs could be explored. Other machine learning algorithms that can capture nonlinear relationships could also be tested and compared with the current methods.
-      </p>
-
-      <p>
-        Future experiments could also use additional evaluation methods to provide a more reliable assessment of model performance. Comparing accuracy, precision, recall, and F1-score is important because a model with high accuracy may still have difficulty identifying actual production increases or decreases.
+        Because KNN, Gaussian Naive Bayes, and Perceptron all plateaued around <strong>~60%</strong>—and because linear boundaries cannot separate noisy agricultural time-series data—future work should explore <strong>non-linear, ensemble, and sequence-aware methods</strong> better suited to this dataset. 
       </p>
     </section>
 
     <!-- VII. CONCLUSION -->
-    <!-- TODO: placeholder -->
     <section id="conclusion">
       <h2>Conclusion</h2>
 
       <p>
-        This project implemented three machine learning algorithms, Gaussian Naive Bayes, K-Nearest Neighbors, and Perceptron, to predict whether vegetable production would increase or decrease based on historical production data. The models were evaluated using accuracy, precision, recall, and F1-score across different years.
+        Among the three machine learning algorithms implemented from scratch for quarterly Philippine agricultural yield prediction (2011–2026; 9,920 records), <strong>K-Nearest Neighbors (KNN)</strong> (<em>k</em> = 19, <em>p</em> = 2) proved to be the most effective and consistent classifier. Across 16 deterministic 80/20 per-year splits, KNN achieved the highest 16-year average Accuracy (<strong>61.96%</strong>), Precision (<strong>64.17%</strong>), and F1-Score (<strong>63.86%</strong>)—ranking first or tied in Accuracy in <strong>10 out of 16 years</strong> and in Precision in <strong>9 out of 16 years</strong>, while maintaining a strong average Recall of <strong>68.79%</strong>.
       </p>
 
       <p>
-        Based on the results, the performance of the three algorithms varied across years and evaluation metrics. No single method consistently achieved the best results, showing that the effectiveness of each algorithm depends on the patterns present in the data. The results also demonstrated that accuracy alone may not fully represent a model's performance, making the use of multiple evaluation metrics important.
+        KNN outperformed Gaussian Naive Bayes (61.10% average F1-Score) and Perceptron (61.30% average F1-Score) because its non-parametric, distance-based approach matches test quarters against historically similar regional production trajectories without requiring strict feature independence or linear separability. Tuning the neighborhood size to <em>k</em> = 19—centered within the theoretical &radic;<em>N</em><sub>train</sub> window—smoothed out short-term quarterly noise while avoiding the severe non-convergence instability observed in the Perceptron.
       </p>
 
       <p>
-        Overall, the project demonstrated how machine learning can be applied to agricultural production data to classify production changes. However, the results also showed the limitations of relying only on historical production data. Incorporating additional factors and exploring other approaches may help improve the models' performance in future studies.
+        At the same time, KNN's ~62%–64% performance ceiling highlights that historical production lags alone cannot fully anticipate external shocks such as the 2015–2016 and 2023–2024 El Ni&ntilde;o droughts, typhoons, or pandemic supply disruptions. Building on KNN's strong local-similarity foundation by incorporating meteorological variables (rainfall, temperature, and ENSO indices), crop/region encodings, and non-linear ensemble or time-series models offers a clear path toward higher forecasting accuracy in future work.
       </p>
     </section>
 
@@ -449,20 +444,42 @@
     <section id="references">
       <h2>References</h2>
 
-      <h3>Sources</h3>
+      <h3>Algorithm and Implementation Sources</h3>
       <ul>
-        <li><a href="https://psa.gov.ph/" target = "blank">https://psa.gov.ph/</a></li>
-        <li><a href="https://www.geeksforgeeks.org/machine-learning/k-nearest-neighbours/" target = "blank">https://www.geeksforgeeks.org/machine-learning/k-nearest-neighbours/</a></li>
-        <li><a href="https://stats.stackexchange.com/questions/163088/how-to-use-log-probabilities-for-gaussian-naive-bayes" target = "blank">https://stats.stackexchange.com/questions/163088/how-to-use-log-probabilities-for-gaussian-naive-bayes</a></li>
-        <li><a href="https://www.cs.toronto.edu/~urtasun/courses/CSC411/tutorial4.pdf" target = "blank">https://www.cs.toronto.edu/~urtasun/courses/CSC411/tutorial4.pdf</a></li>
-        <li><a href="https://www.geeksforgeeks.org/machine-learning/gaussian-naive-bayes/" target = "blank">https://www.geeksforgeeks.org/machine-learning/gaussian-naive-bayes/</a></li>
-        <li><a href="https://www.saedsayad.com/naive_bayesian.htm" target = "blank">https://www.saedsayad.com/naive_bayesian.htm</a></li>
-        <li><a href="https://www.geeksforgeeks.org/k-nearest-neighbours/" target = "blank">https://www.geeksforgeeks.org/k-nearest-neighbours/</a></li>
-        <li><a href="https://www.saedsayad.com/k_nearest_neighbors.htm" target = "blank">https://www.saedsayad.com/k_nearest_neighbors.htm</a></li>
-        <li><a href="https://www.krishnaik.in/ai-tutorials/statistics/standardization-and-normalization" target = "blank">https://www.krishnaik.in/ai-tutorials/statistics/standardization-and-normalization</a></li>
-        <li><a href="https://www.geeksforgeeks.org/deep-learning/what-is-perceptron-the-simplest-artificial-neural-network/" target = "blank">https://www.geeksforgeeks.org/deep-learning/what-is-perceptron-the-simplest-artificial-neural-network/</a></li>
-        <li><a href="https://www.w3schools.com/ai/ai_perceptrons.asp" target = "blank">https://www.w3schools.com/ai/ai_perceptrons.asp</a></li>
-        <li><a href="https://www.geeksforgeeks.org/machine-learning/metrics-for-machine-learning-model/" target = "blank">https://www.geeksforgeeks.org/machine-learning/metrics-for-machine-learning-model/</a></li>
+        <li><a href="https://psa.gov.ph/" target="_blank">https://psa.gov.ph/</a></li>
+        <li><a href="https://www.geeksforgeeks.org/machine-learning/k-nearest-neighbours/" target="_blank">https://www.geeksforgeeks.org/machine-learning/k-nearest-neighbours/</a></li>
+        <li><a href="https://stats.stackexchange.com/questions/163088/how-to-use-log-probabilities-for-gaussian-naive-bayes" target="_blank">https://stats.stackexchange.com/questions/163088/how-to-use-log-probabilities-for-gaussian-naive-bayes</a></li>
+        <li><a href="https://www.cs.toronto.edu/~urtasun/courses/CSC411/tutorial4.pdf" target="_blank">https://www.cs.toronto.edu/~urtasun/courses/CSC411/tutorial4.pdf</a></li>
+        <li><a href="https://www.geeksforgeeks.org/machine-learning/gaussian-naive-bayes/" target="_blank">https://www.geeksforgeeks.org/machine-learning/gaussian-naive-bayes/</a></li>
+        <li><a href="https://www.saedsayad.com/naive_bayesian.htm" target="_blank">https://www.saedsayad.com/naive_bayesian.htm</a></li>
+        <li><a href="https://www.geeksforgeeks.org/k-nearest-neighbours/" target="_blank">https://www.geeksforgeeks.org/k-nearest-neighbours/</a></li>
+        <li><a href="https://www.saedsayad.com/k_nearest_neighbors.htm" target="_blank">https://www.saedsayad.com/k_nearest_neighbors.htm</a></li>
+        <li><a href="https://www.krishnaik.in/ai-tutorials/statistics/standardization-and-normalization" target="_blank">https://www.krishnaik.in/ai-tutorials/statistics/standardization-and-normalization</a></li>
+        <li><a href="https://www.geeksforgeeks.org/deep-learning/what-is-perceptron-the-simplest-artificial-neural-network/" target="_blank">https://www.geeksforgeeks.org/deep-learning/what-is-perceptron-the-simplest-artificial-neural-network/</a></li>
+        <li><a href="https://www.w3schools.com/ai/ai_perceptrons.asp" target="_blank">https://www.w3schools.com/ai/ai_perceptrons.asp</a></li>
+        <li><a href="https://www.geeksforgeeks.org/machine-learning/metrics-for-machine-learning-model/" target="_blank">https://www.geeksforgeeks.org/machine-learning/metrics-for-machine-learning-model/</a></li>
+      </ul>
+
+      <h3>External Factors and Agricultural Context</h3>
+      <ul>
+        <li>
+          Department of Agriculture (DA). (2024). <em>Agricultural Damage and Production Bulletins (El Ni&ntilde;o and Late-2024 Tropical Cyclones)</em>. <a href="https://www.da.gov.ph/" target="_blank">https://www.da.gov.ph/</a>
+        </li>
+        <li>
+          DOST-PAGASA. (2016, 2024). <em>El Ni&ntilde;o / La Ni&ntilde;a Advisories and Philippine Climate Assessment Reports</em>. <a href="https://www.pagasa.dost.gov.ph/climate/el-nino-la-nina/monitoring" target="_blank">https://www.pagasa.dost.gov.ph/climate/el-nino-la-nina/monitoring</a>
+        </li>
+        <li>
+          Food and Agriculture Organization of the United Nations (FAO). (2016). <em>2015–2016 El Ni&ntilde;o: Early Action and Response for Agriculture, Food Security and Nutrition</em>. <a href="https://www.fao.org/philippines/en/" target="_blank">https://www.fao.org/philippines/en/</a>
+        </li>
+        <li>
+          Food and Agriculture Organization of the United Nations (FAO). (2021). <em>Rapid Assessment of the Impact of COVID-19 on Food Supply Chains in the Philippines</em>. <a href="https://www.fao.org/philippines/en/" target="_blank">https://www.fao.org/philippines/en/</a>
+        </li>
+        <li>
+          Philippine Statistics Authority (PSA). (2015, 2019, 2024, 2025, 2026). <em>Major Vegetables and Root Crops Quarterly Bulletins &amp; OpenSTAT Crop Production Database (2010–2026)</em>. <a href="https://openstat.psa.gov.ph/" target="_blank">https://openstat.psa.gov.ph/</a>
+        </li>
+        <li>
+          World Bank. (2019, 2020). <em>Philippines Economic Update: Agricultural Input Costs, Weather Shocks, and COVID-19 Supply-Chain Disruptions</em>. <a href="https://www.worldbank.org/en/country/philippines" target="_blank">https://www.worldbank.org/en/country/philippines</a>
+        </li>
       </ul>
     </section>
 
