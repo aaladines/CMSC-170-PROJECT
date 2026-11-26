@@ -112,6 +112,30 @@
         <li><strong>Neighborhood Voting (<em>k</em> = 19):</strong> Guided by the square-root heuristic (<code>k &approx; &radic;N<sub>train</sub> = &radic;512 &approx; 22.63</code>) as an upper guide and empirical validation of odd candidates nearby, the classifier selects <strong><em>k</em> = 19</strong>—an odd count chosen to prevent binary voting ties, avoid over-smoothing across distinct crop-region records, and maximize 15-year average Accuracy (0.6245) and F1-Score (0.6426)—assigning <strong>Class 1</strong> (production increase) or <strong>Class 0</strong> (decrease/stagnant) by majority vote.</li>
       </ul>
 
+      <!-- k-value validation table (below the Neighborhood Voting bullet) -->
+      <h4>Validation of <em>k</em> (15-Year Averages)</h4>
+      <div class="table-wrap">
+        <table class="k-table">
+          <thead>
+            <tr>
+              <th><em>k</em> Value</th>
+              <th>15-Year Avg Accuracy</th>
+              <th>15-Year Avg Precision</th>
+              <th>15-Year Avg Recall</th>
+              <th>15-Year Avg F1-Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><em>k</em> = 17</td><td>0.6240</td><td>0.6400</td><td>0.6884</td><td>0.6408</td></tr>
+            <tr class="selected"><td><em>k</em> = 19</td><td>0.6245</td><td>0.6464</td><td>0.6945</td><td>0.6426</td></tr>
+            <tr><td><em>k</em> = 21</td><td>0.6208</td><td>0.6312</td><td>0.6973</td><td>0.6391</td></tr>
+            <tr><td><em>k</em> = 23</td><td>0.6182</td><td>0.6379</td><td>0.6978</td><td>0.6379</td></tr>
+            <tr><td><em>k</em> = 25</td><td>0.6069</td><td>0.6228</td><td>0.6860</td><td>0.6243</td></tr>
+            <tr><td><em>k</em> = 27</td><td>0.6074</td><td>0.6229</td><td>0.6931</td><td>0.6263</td></tr>
+          </tbody>
+        </table>
+      </div>
+
       <h3>Gaussian Naive Bayes (GNB)</h3>
       <p>In our implementation (<code>gaussian_naive_bayes.py</code>), Gaussian Naive Bayes models the continuous distribution of our three logarithmic production features directly without discretization:</p>
       <ul>

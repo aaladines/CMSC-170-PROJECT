@@ -78,6 +78,7 @@ h4 {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--muted);
+  /* color: var(--green-mid); */
 }
 
 p {
@@ -316,4 +317,27 @@ tbody tr:hover {
   width: 100%;
   height: 680px;
   border: 0;
+}
+
+/* k-validation table */
+.k-table th,
+.k-table td {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.k-table th:first-child,
+.k-table td:first-child {
+  text-align: center;
+}
+
+.k-table tr.selected td {
+  font-weight: 700;
+  color: var(--green-dark);
+  /* background: var(--yellow-badge); */
+}
+
+/* k-validation heading */
+.k-heading {
+  color: var(--green);
 }
