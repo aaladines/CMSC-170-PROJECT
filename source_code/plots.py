@@ -101,10 +101,10 @@ def plot_metric_per_year(scores, metric_index):
             x=0, xanchor="left",
             y=1.03, yanchor="bottom",
         ),
-        font=dict(size=FONT_SIZE),
+        font=dict(family="system-ui, sans-serif", size=FONT_SIZE),
         title_font_size=FONT_SIZE + 6,
         height=650,
-        margin=dict(t=130, r=30, b=70, l=70),
+        margin=dict(t=105, r=30, b=70, l=70),
     )
 
     return fig
@@ -128,6 +128,19 @@ def show_all(scores, *unused):
             # the .html file where the chart is shown
             path = OUTPUT_FOLDER + "/" + filename + ".html"
             fig.write_html(path, include_plotlyjs="cdn")
+
+            # reset the exported page margins so the chart fits its iframe
+            with open(path, encoding="utf-8") as chart_file:
+                html = chart_file.read()
+
+            html = html.replace(
+                "</head>",
+                "<style>html, body { margin: 0; padding: 0; height: auto; }</style></head>",
+                1,
+            )
+
+            with open(path, "w", encoding="utf-8") as chart_file:
+                chart_file.write(html)
             print("Saved " + path)
         else:
             # open the chart in the browser instead of saving

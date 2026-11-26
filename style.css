@@ -317,3 +317,18 @@ tbody tr:hover {
   height: 680px;
   border: 0;
 }
+
+.chart-grid .fig iframe { height: 650px; }
+
+.method-chart iframe { height: 1200px; }
+
+.method-chart.compact iframe { height: 700px; }
+
+.method-selector { margin: 1rem 0 1.5rem; }
+.method-selector label { display: block; font-weight: 600; margin-bottom: .4rem; }
+.method-selector select {
+  width: 100%; min-width: 0; padding: .7rem; border: 1px solid var(--line);
+  border-radius: 6px; background: white; color: var(--text); font: inherit;
+}
+.method-selector select:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+.method-selector .note { margin-top: .5rem; }
