@@ -64,7 +64,7 @@ python main.py
 
 **Angelo Gabriel A. Ladines**  
 
-**Lawrence Andrew Mamina**
+**Lawrence Andrew Maminta**
 
 **Arianne Marie R. Reyes**
 

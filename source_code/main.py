@@ -4,6 +4,8 @@
 
 import numpy as np
 import plots
+import os
+import json
 from data_loader import prepare_dataset, save_prepared_dataset, split_per_year
 
 from gaussian_naive_bayes import (
@@ -179,5 +181,42 @@ def run_pipeline():
     
     plots.show_all(scores, confusion, class_counts)
 
+    # Export results for index.html (tables_and_charts/results.js)
+    model_configs = {
+        "Gaussian Naive Bayes": f"k = {GNB_K:g}",
+        "K-Nearest Neighbors": f"k = {KNN_K}, p = {KNN_P:g}",
+        "Perceptron": f"Learning rate = {PERCEPTRON_LR}, Max epochs = {PERCEPTRON_EPOCHS}",
+    }
+
+    results_by_year = []
+    for year in all_years:
+        year_models = []
+        n_data = 0
+        for name, results, _ in models:
+            if year in scores.get(name, {}):
+                acc, prec, rec, f1 = scores[name][year]
+                n_data = len(results[year][0])
+                year_models.append({
+                    "name": name,
+                    "config": model_configs[name],
+                    "accuracy": float(acc),
+                    "precision": float(prec),
+                    "recall": float(rec),
+                    "f1_score": float(f1),
+                })
+        results_by_year.append({
+            "year": int(year),
+            "n_data": int(n_data),
+            "models": year_models,
+        })
+
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    results_js_path = os.path.join(project_root, "tables_and_charts", "results.js")
+    with open(results_js_path, "w", encoding="utf-8") as f:
+        f.write("const MODEL_RESULTS = ")
+        json.dump(results_by_year, f, indent=2)
+        f.write(";\n")
+    print(f"Saved {results_js_path}")
+    
 if __name__ == "__main__":
     run_pipeline()
