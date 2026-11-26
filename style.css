@@ -343,3 +343,46 @@ tbody tr:hover {
 .k-heading {
   color: var(--green);
 }
+
+.confusion-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 1rem;
+}
+
+.confusion-matrix {
+  table-layout: fixed;
+  font-size: .82rem;
+}
+
+.confusion-matrix caption {
+  padding: .75rem;
+  color: var(--green-dark);
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: left;
+}
+
+.confusion-matrix th,
+.confusion-matrix td {
+  padding: .65rem .4rem;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.confusion-matrix thead th {
+  font-size: inherit;
+}
+
+.confusion-matrix tbody th {
+  background: var(--green-light);
+}
+
+.confusion-matrix strong,
+.confusion-matrix td span {
+  display: block;
+}
+
+.confusion-matrix strong {
+  font-size: 1.15rem;
+}

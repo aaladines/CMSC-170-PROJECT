@@ -450,3 +450,36 @@ const MODEL_RESULTS = [
     ]
   }
 ];
+
+const CONFUSION_MATRICES = {
+  "Gaussian Naive Bayes": [
+    [
+      339,
+      513
+    ],
+    [
+      250,
+      818
+    ]
+  ],
+  "K-Nearest Neighbors": [
+    [
+      416,
+      436
+    ],
+    [
+      285,
+      783
+    ]
+  ],
+  "Perceptron": [
+    [
+      376,
+      476
+    ],
+    [
+      324,
+      744
+    ]
+  ]
+};

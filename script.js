@@ -6,7 +6,55 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderYearlyTable(MODEL_RESULTS);
   renderAveragesTable(MODEL_RESULTS);
+  renderConfusionMatrices(CONFUSION_MATRICES);
 });
+
+function renderConfusionMatrices(matrices) {
+  const container = document.getElementById("confusion-matrices");
+  const classes = ["Decrease / stagnant (0)", "Increase (1)"];
+
+  Object.entries(matrices).forEach(([name, matrix]) => {
+    const card = document.createElement("div");
+    card.className = "table-wrap";
+    const table = document.createElement("table");
+    table.className = "confusion-matrix";
+    table.createCaption().textContent = name;
+
+    const header = table.createTHead().insertRow();
+    ["Actual ↓ / Predicted →", ...classes].forEach((label) => {
+      const th = document.createElement("th");
+      th.scope = "col";
+      th.textContent = label;
+      header.appendChild(th);
+    });
+
+    const body = table.createTBody();
+    matrix.forEach((counts, actual) => {
+      const row = body.insertRow();
+      const label = document.createElement("th");
+      label.scope = "row";
+      label.textContent = classes[actual];
+      row.appendChild(label);
+      const total = counts.reduce((sum, count) => sum + count, 0);
+
+      counts.forEach((count, predicted) => {
+        const percentage = total === 0 ? 0 : (count / total) * 100;
+        const cell = row.insertCell();
+        cell.style.backgroundColor = actual === predicted
+          ? `hsl(145, 35%, ${97 - percentage * 0.3}%)`
+          : `hsl(43, 90%, ${97 - percentage * 0.25}%)`;
+        const value = document.createElement("strong");
+        value.textContent = count;
+        const percent = document.createElement("span");
+        percent.textContent = `${percentage.toFixed(1)}%`;
+        cell.append(value, percent);
+      });
+    });
+
+    card.appendChild(table);
+    container.appendChild(card);
+  });
+}
 
 function renderYearlyTable(data) {
   const table = document.getElementById("year-results-table");

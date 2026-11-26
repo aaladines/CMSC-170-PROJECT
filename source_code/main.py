@@ -216,6 +216,9 @@ def run_pipeline():
         f.write("const MODEL_RESULTS = ")
         json.dump(results_by_year, f, indent=2)
         f.write(";\n")
+        f.write("\nconst CONFUSION_MATRICES = ")
+        json.dump({name: matrix.tolist() for name, matrix in confusion.items()}, f, indent=2)
+        f.write(";\n")
     print(f"Saved {results_js_path}")
     
 if __name__ == "__main__":
