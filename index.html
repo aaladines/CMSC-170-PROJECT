@@ -221,6 +221,13 @@
         <div class="fig"><iframe src="tables_and_charts/f1_score.html" title="F1-Score per Year" loading="lazy"></iframe></div>
       </div>
 
+      <h3>Confusion Matrices (All Test Years)</h3>
+      <p>Each matrix combines the model's test predictions across all evaluated years.
+        Rows show actual classes and columns show predicted classes. Each cell shows a count
+        and its percentage of that actual class. Class 0 includes decreases and unchanged production.</p>
+      <p class="note">Green cells show correct predictions; yellow cells show errors.</p>
+      <div class="confusion-grid" id="confusion-matrices"></div>
+
       <!-- Comparative Model Results by Year -->
       <h3>Comparative Model Results by Year</h3>
       <div class="table-wrap year-scroll">
