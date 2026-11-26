@@ -69,7 +69,15 @@ python main.py
 - **GitHub Pages Backbone & Initial Content (`index.html`):** Created the foundation of the GitHub Pages site and wrote its initial content, including the Background, Dataset & Split, Methods, Results, and Links sections.
 - **Evaluation Metric Tables (Plotly):** Built Plotly tables displaying accuracy, precision, recall, and F1-score for the evaluated models.
 
-**Lawrence Andrew Maminta**
+**Lawrence Andrew P. Maminta**
+- **From-Scratch Perceptron Implementation (`perceptron.py`):**
+Implemented the Perceptron classification algorithm from scratch, including weight and bias initialization, prediction, error calculation, and parameter updates during training. Added a configurable learning rate and maximum number of epochs, with early stopping when the model converges.
+- **Perceptron Integration and Testing:**
+Integrated the Perceptron implementation into the group's project branch and tested it with the unified evaluation pipeline to check its predictions and performance alongside the other classifiers.
+- **Methods Documentation (`index.html`):**
+Contributed to explaining why K-Nearest Neighbors, Gaussian Naive Bayes, and Perceptron were selected, including their different approaches to classification.
+- **Results, Discussion & Conclusion (`index.html`):**
+Contributed to the presentation and explanation of the model evaluation results, including the comparison of accuracy, precision, recall, and F1-score across the three classifiers. Helped discuss the models' performance, the Perceptron's convergence issues, the possible effects of external factors on agricultural production, and the project's limitations and recommendations.
 
 **Arianne Marie R. Reyes**
 - **From-Scratch Model & Metric Implementation (`k_nearest_neighbor.py`, `gaussian_naive_bayes.py`):** Implemented the Minkowski/Euclidean K-Nearest Neighbors classifier from scratch, tuned the neighborhood hyperparameter (`k = 19`), and added evaluation metric calculations (`evaluate_gnb`) for Gaussian Naive Bayes.
