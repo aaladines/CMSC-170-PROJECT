@@ -65,20 +65,22 @@
 
       <h3>Overview and Size</h3>
       <p>The dataset includes a variety of vegetable and root crop quarterly, semestral, and annual production data for 
-        every province in the Philippines from 2010-2026. After preprocessing, the dataset has 9920 rows.</p>
+        every region and province in the Philippines from 2010–2025 (with partial-year 2026 records excluded so every evaluation year has complete four-quarter coverage). After preprocessing, the dataset has 9,600 rows spanning 2011–2025.</p>
 
       <h3>Source</h3>
       <p>Philippine Statistics Authority (PSA)</p>
 
       <h3>Features and Target</h3>
-      <p>To accurately forecast whether a province's quarterly yield for top vegetable and root crops 
-        (based on Philippine agricultural crop production data) will increase (Class 1) or decrease/remain stagnant (Class 0) 
-        compared to the exact same quarter of the previous calendar year.</p>
+      <ul>
+        <li><strong>Raw Dataset Fields:</strong> Crop name (10 selected vegetable and root crops), Philippine region (16 regions), year (2010–2025), quarter (Q1–Q4), and quarterly production volume (in metric tons).</li>
+        <li><strong>Engineered Input Features (3):</strong> (1) Log previous-year same-quarter production volume, (2) prior year-over-year log production change, and (3) prior quarter-over-quarter log production change.</li>
+        <li><strong>Target Variable:</strong> Binary classification indicating whether a region's quarterly crop yield increased (<code>Class 1</code>) or decreased/remained stagnant (<code>Class 0</code>) compared to the exact same quarter of the previous calendar year.</li>
+      </ul>
 
       <h3>Preprocessing Steps</h3>
       <ul>
         <li>The dataset was prepared by keeping the ten selected crops and regional production records, excluding the Negros Island Region (NIR), 
-            provincial records, and the national total.</li>
+            provincial records, the national total, and incomplete 2026 columns.</li>
         <li>Semester and annual totals were removed, leaving only quarterly observations grouped by crop and region.</li>
         <li>Region names were cleaned by removing leading dots and extra spaces, and production values were converted into numeric form.</li>
         <li>Missing values marked as ".." were skipped, while actual zero-production values were preserved.</li>
@@ -92,22 +94,22 @@
         applied separately within each year instead of once over the whole dataset. 
         The rows of each year were assigned to the training or testing set using a random number generator, 
         so that the testing data is not biased toward the later years or toward any one quarter, such as Q4. 
-        For the dataset, the total amount of available data was 9920 rows, hence the amount of available training and testing rows are 7936 and 1984, respectively. 
-        This gives 512 training and 128 testing rows for each year from 2011 to 2025, and 256 training and 64 testing rows for 2026. 
+        For the dataset, the total amount of available data was 9,600 rows, hence the amount of available training and testing rows are 7,680 and 1,920, respectively. 
+        This gives a uniform split of 512 training and 128 testing rows for every year from 2011 to 2025.
       </p>
     </section>
 
     <!-- III. METHODS AND EVALUATION SETUP -->
     <section id="methods">
       <h2>Methods</h2>
-      <p>Each year from 2011 to 2026 is evaluated independently using the same deterministic 80/20 split (512 training and 128 testing records per full year; 256 training and 64 testing records in 2026). Across all three classifiers, every regional crop quarter is represented by three continuous logarithmic features engineered from <code>dataset_prepared.csv</code>: (1) <strong>log previous-year same-quarter volume</strong>, <code>log(1 + prev_q)</code>; (2) <strong>prior year-over-year log change</strong> from the preceding year's matching quarter; and (3) <strong>prior quarter-over-quarter log change</strong> from the immediately preceding quarter (defaulting to <code>0.0</code> when earlier historical quarters are unavailable).</p>
+      <p>Each year from 2011 to 2025 is evaluated independently using the same deterministic 80/20 split (512 training and 128 testing records per year). Across all three classifiers, every regional crop quarter is represented by three continuous logarithmic features engineered from <code>dataset_prepared.csv</code>: (1) <strong>log previous-year same-quarter volume</strong>, <code>log(1 + prev_q)</code>; (2) <strong>prior year-over-year log change</strong> from the preceding year's matching quarter; and (3) <strong>prior quarter-over-quarter log change</strong> from the immediately preceding quarter (defaulting to <code>0.0</code> when earlier historical quarters are unavailable).</p>
 
       <h3>K-Nearest Neighbors (KNN)</h3>
       <p>In our implementation (<code>k_nearest_neighbor.py</code>), KNN classifies each test crop-region quarter by comparing its recent production scale and growth trajectory against historical records within the same evaluation year:</p>
       <ul>
         <li><strong>Per-Year Z-Score Standardization:</strong> Before computing distances, each year's training features are standardized using their training mean and standard deviation (<code>(x - mean) / std</code>, setting <code>std = 1.0</code> if zero variance occurs), and the same parameters are applied to that year's test set so large log-volume values do not overpower smaller log-change features.</li>
         <li><strong>Minkowski / Euclidean Distance (<em>p</em> = 2):</strong> For every standardized test record, the model calculates the Euclidean distance <code>d(x, y) = (&Sigma;|x<sub>i</sub> - y<sub>i</sub>|<sup>2</sup>)<sup>1/2</sup></code> across all three features against every training sample in that year.</li>
-        <li><strong>Neighborhood Voting (<em>k</em> = 19):</strong> Guided by the square-root heuristic (<code>k &approx; &radic;N<sub>train</sub></code>, spanning 16.00 to 22.63 for 256–512 training rows), the classifier selects the <strong>19 nearest neighbors</strong>—an odd count chosen to prevent voting ties—and assigns <strong>Class 1</strong> (production increase) or <strong>Class 0</strong> (decrease/stagnant) by majority vote.</li>
+        <li><strong>Neighborhood Voting (<em>k</em> = 19):</strong> Guided by the square-root heuristic (<code>k &approx; &radic;N<sub>train</sub> = &radic;512 &approx; 22.63</code>) as an upper guide and empirical validation of odd candidates nearby, the classifier selects <strong><em>k</em> = 19</strong>—an odd count chosen to prevent binary voting ties, avoid over-smoothing across distinct crop-region records, and maximize 15-year average Accuracy (0.6245) and F1-Score (0.6426)—assigning <strong>Class 1</strong> (production increase) or <strong>Class 0</strong> (decrease/stagnant) by majority vote.</li>
       </ul>
 
       <h3>Gaussian Naive Bayes (GNB)</h3>
@@ -139,7 +141,7 @@
           <tbody>
             <tr>
               <td>Gaussian Naive Bayes</td>
-              <td>k = 1e-9 </td>
+              <td>k = 1e-9</td>
             </tr>
             <tr>
               <td>K-Nearest Neighbors</td>
@@ -180,12 +182,12 @@
     <section id="results">
       <h2>Results</h2>
       <p>The three machine learning algorithms, Gaussian Naive Bayes (GNB), K-Nearest Neighbors (KNN), and Perceptron, were evaluated separately 
-        for each year from 2011 - 2026. The results are presented through line graphs, with each graph showing the yearly performance of the three algorithms.</p>
+        for each year from 2011–2025. The results are presented through line graphs, with each graph showing the yearly performance of the three algorithms.</p>
 
       <h3>Summary Tables (All Years)</h3>
 
-            <!-- 16-Year Averages Table -->
-      <h3>16-Year Averages</h3>
+      <!-- 15-Year Averages Table -->
+      <h3>15-Year Averages</h3>
       <div class="table-wrap">
         <table>
           <thead>
@@ -205,13 +207,11 @@
       </div>
 
       <h3>Findings</h3>
-      <p>K-Nearest Neighbor emerged as the strongest overall algorithm under the 80/20 per-year split, 
-        achieving the highest 16-year average Accuracy (0.6196), precision (0.6417), 
-        and f1-score (0.6386), while ranking first or tied in accuracy in 10 out of 16 years and precision in 9 out of 16 years.</p>
-      <p>Perceptron achieved the second-highest 16 year average f1-score (0.6130), ahead of Gaussian Naive Bayes (0.6110), 
-        alongside 0.5801 average accuracy, 0.5997 average precision, and 0.6736 average recall.</p>
-      <p>Gaussian Naive Bayes recorded the highest 16 year average recall (0.6941), ranking first or tied in recall in 
-        10 out of 16 years and f1-score in 8 out of 16 years.</p>
+      <p>K-Nearest Neighbors emerged as the strongest overall algorithm under the 80/20 per-year split, 
+        achieving the highest 15-year average Accuracy (0.6245), Precision (0.6464), 
+        and F1-Score (0.6426), while ranking first or tied in accuracy in 9 out of 15 years and precision in 8 out of 15 years.</p>
+      <p>Gaussian Naive Bayes ranked second overall in Accuracy (0.6026), Precision (0.6111), and F1-Score (0.6300), while recording the highest 15-year average Recall (0.7247)—ranking first or tied in recall in 10 out of 15 years and F1-Score in 8 out of 15 years.</p>
+      <p>Perceptron recorded the lowest 15-year averages across all four metrics, with 0.5833 average Accuracy, 0.6030 average Precision, 0.6754 average Recall, and 0.6142 average F1-Score.</p>
 
       <h3>Line Graphs</h3>
       <div class="chart-grid">
@@ -221,7 +221,7 @@
         <div class="fig"><iframe src="tables_and_charts/f1_score.html" title="F1-Score per Year" loading="lazy"></iframe></div>
       </div>
 
-            <!-- Comparative Model Results by Year -->
+      <!-- Comparative Model Results by Year -->
       <h3>Comparative Model Results by Year</h3>
       <div class="table-wrap year-scroll">
         <table class="year-table" id="year-results-table">
@@ -247,21 +247,21 @@
 
       <h3>Overall Performance and the ~60% Baseline</h3>
       <p>
-        Across the 16-year evaluation period (2011–2026), <strong>K-Nearest Neighbors (KNN)</strong> (<em>k</em> = 19, <em>p</em> = 2) emerged as the strongest overall classifier among the three models, recording the highest 16-year average Accuracy (<strong>61.96%</strong>), Precision (<strong>64.17%</strong>), and F1-Score (<strong>63.86%</strong>), and achieving its peak accuracy of <strong>72.66%</strong> in both 2012 and 2024. Meanwhile, <strong>Gaussian Naive Bayes (GNB)</strong> led in 16-year average Recall (<strong>69.41%</strong>), and <strong>Perceptron</strong> ranked second in average F1-Score (<strong>61.30%</strong>).
+        Across the 15-year evaluation period (2011–2025), <strong>K-Nearest Neighbors (KNN)</strong> (<em>k</em> = 19, <em>p</em> = 2) emerged as the strongest overall classifier among the three models, recording the highest 15-year average Accuracy (<strong>62.45%</strong>), Precision (<strong>64.64%</strong>), and F1-Score (<strong>64.26%</strong>), and achieving its peak accuracy of <strong>72.66%</strong> in both 2012 and 2024. Meanwhile, <strong>Gaussian Naive Bayes (GNB)</strong> ranked second in Accuracy (<strong>60.26%</strong>), Precision (<strong>61.11%</strong>), and F1-Score (<strong>63.00%</strong>) while leading in average Recall (<strong>72.47%</strong>), and <strong>Perceptron</strong> placed third across all four metrics (<strong>58.33%</strong> Accuracy; <strong>61.42%</strong> F1-Score).
       </p>
       <p>
-        Despite these relative differences, <strong>all three models hovered near the ~60% mark</strong> (58.01%–61.96% average Accuracy and 61.10%–63.86% average F1-Score). Because the models rely exclusively on three historical lag features—previous year's same-quarter production, prior year-over-year change, and prior quarter-over-quarter change—they capture baseline seasonal momentum during stable years but hit a predictive ceiling whenever external climatic or economic shocks disrupt normal agricultural cycles.
+        Despite these relative differences, <strong>all three models hovered near the ~60% mark</strong> (58.33%–62.45% average Accuracy and 61.42%–64.26% average F1-Score). Because the models rely exclusively on three historical lag features—previous year's same-quarter production, prior year-over-year change, and prior quarter-over-quarter change—they capture baseline seasonal momentum during stable years but hit a predictive ceiling whenever external climatic or economic shocks disrupt normal agricultural cycles.
       </p>
 
       <h3>Perceptron Unreliability and Non-Linear Separability</h3>
       <p>
-        Among the three algorithms, the <strong>Perceptron proved unreliable for this dataset</strong>. Across all 16 yearly splits, the Perceptron <strong>consistently failed to converge</strong> (reaching <code>max_epochs = 100</code> in every year), and adjusting either the learning rate (&eta;) or the maximum number of epochs did not resolve this behavior.
+        Among the three algorithms, the <strong>Perceptron proved unreliable for this dataset</strong>. Across all 15 yearly splits, the Perceptron <strong>consistently failed to converge</strong> (reaching <code>max_epochs = 100</code> in every year), and adjusting either the learning rate (&eta;) or the maximum number of epochs did not resolve this behavior.
       </p>
       <p>
         By the Perceptron Convergence Theorem, a single-layer Perceptron converges only when the classes are <strong>strictly linearly separable</strong>. Because ten distinct vegetable and root crops across sixteen Philippine regions are compressed into a three-dimensional historical lag space—without meteorological or soil variables, and with missing lag records defaulting to <code>0.0</code>—Class 1 (increase) and Class 0 (decrease or stagnation) instances overlap heavily. Starting from zero weights, changing the learning rate merely rescales the weight vector without altering the flat separating hyperplane, causing the decision boundary to oscillate across noisy records rather than stabilize.
       </p>
 
-      <h3>External Factors Driving Yearly Fluctuations (2011–2026)</h3>
+      <h3>External Factors Driving Yearly Fluctuations (2011–2025)</h3>
       <p>
         The sharp spikes, dips, and plateaus in the yearly line graphs align closely with documented climatic, biological, and economic events in Philippine agriculture:
       </p>
@@ -279,10 +279,7 @@
           <strong>2020–2022 (COVID-19 Supply-Chain Disruptions and Reopening):</strong> In <strong>2020</strong>, community quarantine lockdowns disrupted inter-provincial transport, market logistics, and farm labor availability, creating erratic regional surpluses and deficits (World Bank, 2020; FAO, 2021). Perceptron captured all positive recovery cases (<strong>100.00%</strong> recall; <strong>72.00%</strong> F1-score), while KNN and GNB rebounded in <strong>2021–2022</strong> (74.00%–76.92% F1-score) as domestic trade and food service demand normalized.
         </li>
         <li>
-          <strong>2023–2024 (2023–2024 El Ni&ntilde;o, Late-Year Typhoons, and High-Precision / Low-Recall Skew):</strong> In <strong>2023</strong>, the transition into El Ni&ntilde;o and erratic monsoon rainfall caused non-cyclical regional yield swings that contradicted prior-year trends, dragging all models to their lowest accuracies (<strong>46.09%–53.12%</strong>) and precisions (<strong>38.71%–45.45%</strong>) (DOST-PAGASA, 2024; PSA, 2024). By <strong>2024</strong>, intensifying El Ni&ntilde;o drought conditions followed by successive late-year typhoons (including <em>Kristine</em>, <em>Leon</em>, and <em>Pepito</em>) triggered widespread production contractions (DA, 2024; PSA, 2025). With Class 0 dominating the year, models predicted decreases conservatively—raising overall accuracy (69.53%–72.66%) and giving KNN an <strong>85.71%</strong> precision on the few increases it flagged, while collapsing recall to <strong>15.00%</strong> (GNB and KNN) and <strong>27.50%</strong> (Perceptron) because localized rebounds could not be detected without weather indicators.
-        </li>
-        <li>
-          <strong>2025–2026 (La Ni&ntilde;a Transition and Partial-Year Coverage):</strong> Post-El Ni&ntilde;o recovery and La Ni&ntilde;a rainfall patterns in <strong>2025</strong> restored model recall (66.15%–81.54%), while <strong>2026</strong> covers only Q1 and Q2 (64 test records instead of 128), producing moderate F1-scores (32.65%–59.46%) from half-year seasonal data (PSA, 2026).
+          <strong>2023–2025 (2023–2024 El Ni&ntilde;o, Late-Year Typhoons, and La Ni&ntilde;a Recovery):</strong> In <strong>2023</strong>, the transition into El Ni&ntilde;o and erratic monsoon rainfall caused non-cyclical regional yield swings that contradicted prior-year trends, dragging all models to their lowest accuracies (<strong>46.09%–53.12%</strong>) and precisions (<strong>38.71%–45.45%</strong>) (DOST-PAGASA, 2024; PSA, 2024). By <strong>2024</strong>, intensifying El Ni&ntilde;o drought conditions followed by successive late-year typhoons (including <em>Kristine</em>, <em>Leon</em>, and <em>Pepito</em>) triggered widespread production contractions (DA, 2024; PSA, 2025). With Class 0 dominating the year, models predicted decreases conservatively—raising overall accuracy (69.53%–72.66%) and giving KNN an <strong>85.71%</strong> precision on the few increases it flagged, while collapsing recall to <strong>15.00%</strong> (GNB and KNN) and <strong>27.50%</strong> (Perceptron) because localized rebounds could not be detected without weather indicators. Post-El Ni&ntilde;o recovery and La Ni&ntilde;a rainfall patterns in <strong>2025</strong> restored model recall (66.15%–81.54%) and lifted GNB and Perceptron F1-scores back to ~65.00% (PSA, 2026).
         </li>
       </ul>
 
@@ -291,7 +288,7 @@
         The primary limitation of this study is its reliance on only three historical production features, omitting exogenous drivers such as rainfall volume, temperature anomalies, El Ni&ntilde;o–Southern Oscillation (ENSO) indices, typhoon paths, soil conditions, and economic indicators like fertilizer and fuel prices. Additionally, assigning <code>0.0</code> when prior-year lag records are unavailable introduces artificial flat trends into the feature space.
       </p>
       <p>
-        Because KNN, Gaussian Naive Bayes, and Perceptron all plateaued around <strong>~60%</strong>—and because linear boundaries cannot separate noisy agricultural time-series data—future work should explore <strong>non-linear, ensemble, and sequence-aware methods</strong> better suited to this dataset. 
+        Because KNN, Gaussian Naive Bayes, and Perceptron all plateaued around <strong>~60%–64%</strong>—and because linear boundaries cannot separate noisy agricultural time-series data—future work should explore <strong>non-linear, ensemble, and sequence-aware methods</strong> better suited to this dataset.
       </p>
     </section>
 
@@ -300,15 +297,15 @@
       <h2>Conclusion</h2>
 
       <p>
-        Among the three machine learning algorithms implemented from scratch for quarterly Philippine agricultural yield prediction (2011–2026; 9,920 records), <strong>K-Nearest Neighbors (KNN)</strong> (<em>k</em> = 19, <em>p</em> = 2) proved to be the most effective and consistent classifier. Across 16 deterministic 80/20 per-year splits, KNN achieved the highest 16-year average Accuracy (<strong>61.96%</strong>), Precision (<strong>64.17%</strong>), and F1-Score (<strong>63.86%</strong>)—ranking first or tied in Accuracy in <strong>10 out of 16 years</strong> and in Precision in <strong>9 out of 16 years</strong>, while maintaining a strong average Recall of <strong>68.79%</strong>.
+        Among the three machine learning algorithms implemented from scratch for quarterly Philippine agricultural yield prediction (2011–2025; 9,600 records), <strong>K-Nearest Neighbors (KNN)</strong> (<em>k</em> = 19, <em>p</em> = 2) proved to be the most effective and consistent classifier. Across 15 deterministic 80/20 per-year splits (512 training and 128 testing records per year), KNN achieved the highest 15-year average Accuracy (<strong>62.45%</strong>), Precision (<strong>64.64%</strong>), and F1-Score (<strong>64.26%</strong>)—ranking first or tied in Accuracy in <strong>9 out of 15 years</strong> and in Precision in <strong>8 out of 15 years</strong>, while maintaining a strong average Recall of <strong>69.45%</strong>.
       </p>
 
       <p>
-        KNN outperformed Gaussian Naive Bayes (61.10% average F1-Score) and Perceptron (61.30% average F1-Score) because its non-parametric, distance-based approach matches test quarters against historically similar regional production trajectories without requiring strict feature independence or linear separability. Tuning the neighborhood size to <em>k</em> = 19—centered within the theoretical &radic;<em>N</em><sub>train</sub> window—smoothed out short-term quarterly noise while avoiding the severe non-convergence instability observed in the Perceptron.
+        KNN outperformed Gaussian Naive Bayes (63.00% average F1-Score) and Perceptron (61.42% average F1-Score) because its non-parametric, distance-based approach matches test quarters against historically similar regional production trajectories without requiring strict feature independence or linear separability. Tuning the neighborhood size to <em>k</em> = 19—guided by the &radic;512 &approx; 22.63 heuristic and empirical validation across all 15 years—smoothed out short-term quarterly noise while avoiding the severe non-convergence instability observed in the Perceptron.
       </p>
 
       <p>
-        At the same time, KNN's ~62%–64% performance ceiling highlights that historical production lags alone cannot fully anticipate external shocks such as the 2015–2016 and 2023–2024 El Ni&ntilde;o droughts, typhoons, or pandemic supply disruptions. Building on KNN's strong local-similarity foundation by incorporating meteorological variables (rainfall, temperature, and ENSO indices), crop/region encodings, and non-linear ensemble or time-series models offers a clear path toward higher forecasting accuracy in future work.
+        At the same time, KNN's ~62%–65% performance ceiling highlights that historical production lags alone cannot fully anticipate external shocks such as the 2015–2016 and 2023–2024 El Ni&ntilde;o droughts, typhoons, or pandemic supply disruptions. Building on KNN's strong local-similarity foundation by incorporating meteorological variables (rainfall, temperature, and ENSO indices), crop/region encodings, and non-linear ensemble or time-series models offers a clear path toward higher forecasting accuracy in future work.
       </p>
     </section>
 
@@ -347,7 +344,7 @@
           Food and Agriculture Organization of the United Nations (FAO). (2021). <em>Rapid Assessment of the Impact of COVID-19 on Food Supply Chains in the Philippines</em>. <a href="https://reliefweb.int/report/philippines/rapid-assessment-impact-covid-19-food-supply-chains-philippines" target="_blank">https://reliefweb.int/report/philippines/rapid-assessment-impact-covid-19-food-supply-chains-philippines</a>
         </li>
         <li>
-          Philippine Statistics Authority (PSA). (2015, 2019, 2024, 2025, 2026). <em>Major Vegetables and Root Crops Quarterly Bulletins &amp; OpenSTAT Crop Production Database (2010–2026)</em>. <a href="https://psa.gov.ph/sites/default/files/infographics/Major%20Vegetables%20and%20Root%20Crops%20Statistics_January%20to%20March%202026.pdf" target="_blank">https://psa.gov.ph/sites/default/files/infographics/Major%20Vegetables%20and%20Root%20Crops%20Statistics_January%20to%20March%202026.pdf</a>
+          Philippine Statistics Authority (PSA). (2015, 2019, 2024, 2025, 2026). <em>Major Vegetables and Root Crops Quarterly Bulletins &amp; OpenSTAT Crop Production Database (2010–2025)</em>. <a href="https://psa.gov.ph/sites/default/files/infographics/Major%20Vegetables%20and%20Root%20Crops%20Statistics_January%20to%20March%202026.pdf" target="_blank">https://psa.gov.ph/sites/default/files/infographics/Major%20Vegetables%20and%20Root%20Crops%20Statistics_January%20to%20March%202026.pdf</a>
         </li>
         <li>
           World Bank. (2019, 2020). <em>Philippines Economic Update: Agricultural Input Costs, Weather Shocks, and COVID-19 Supply-Chain Disruptions</em>. <a href="https://documents1.worldbank.org/curated/en/099120924032510206/pdf/P50720211d97910351931e19b91ddf44aee.pdf" target="_blank">https://documents1.worldbank.org/curated/en/099120924032510206/pdf/P50720211d97910351931e19b91ddf44aee.pdf</a>
@@ -359,8 +356,8 @@
     <section id="links">
       <h2>Links</h2>
       <ul>
-        <li><a href="https://github.com/aaladines/CMSC-170-PROJECT" target = "blank">GitHub Repository</a></li>
-        <li><a href="https://canva.link/6uxy0vnf1rpjtdk" target = "blank">Canva Presentation Slides</a></li>
+        <li><a href="https://github.com/aaladines/CMSC-170-PROJECT" target="_blank">GitHub Repository</a></li>
+        <li><a href="https://canva.link/6uxy0vnf1rpjtdk" target="_blank">Canva Presentation Slides</a></li>
       </ul>
     </section>
 

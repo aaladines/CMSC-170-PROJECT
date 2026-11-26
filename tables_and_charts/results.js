@@ -448,35 +448,5 @@ const MODEL_RESULTS = [
         "f1_score": 0.65
       }
     ]
-  },
-  {
-    "year": 2026,
-    "n_data": 64,
-    "models": [
-      {
-        "name": "Gaussian Naive Bayes",
-        "config": "k = 1e-09",
-        "accuracy": 0.484375,
-        "precision": 0.5333333333333333,
-        "recall": 0.23529411764705882,
-        "f1_score": 0.326530612244898
-      },
-      {
-        "name": "K-Nearest Neighbors",
-        "config": "k = 19, p = 2",
-        "accuracy": 0.546875,
-        "precision": 0.5714285714285714,
-        "recall": 0.5882352941176471,
-        "f1_score": 0.5797101449275363
-      },
-      {
-        "name": "Perceptron",
-        "config": "Learning rate = 0.01, Max epochs = 100",
-        "accuracy": 0.53125,
-        "precision": 0.55,
-        "recall": 0.6470588235294118,
-        "f1_score": 0.5945945945945946
-      }
-    ]
   }
 ];

@@ -35,12 +35,12 @@ def filter_dataset():
       next(reader, None)
       header = next(reader, None)
       if (header is not None):
-        # keep crop and geolocation (indices 0 and 1)
+        # keep crop and geolocation (indices 0 and 1), excluding partial year 2026
         # each year repeats: q1, q2, s1, q3, q4, s2, annual
         # after the first two columns, offsets 0, 1, 3, 4 select q1-q4
         columns = []
         for i in range(len(header)):
-          if (i < 2 or (i - 2) % 7 in (0, 1, 3, 4)):
+          if (i < 2 or (not header[i].startswith("2026") and (i - 2) % 7 in (0, 1, 3, 4))):
             columns.append(i)
         filtered_header = []
         for i in columns:

@@ -88,7 +88,7 @@ def plot_metric_per_year(scores, metric_index):
         xaxis=dict(
             title=dict(text="Year", standoff=15),
             dtick=1,
-            range=[2010.5, 2026.5], # no empty ticks at 2010 / 2027
+            range=[2010.5, 2025.5], # no empty ticks at 2010 / 2027
         ),
         yaxis=dict(
             title=dict(text=metric, standoff=10),
