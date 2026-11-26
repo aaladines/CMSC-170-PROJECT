@@ -63,6 +63,11 @@ python main.py
 **Ken Kristoffer F. Enrile**
 
 **Angelo Gabriel A. Ladines**  
+- **From-Scratch Gaussian Naive Bayes Implementation (`gaussian_naive_bayes.py`):** Implemented the Gaussian Naive Bayes classifier from scratch, including per-class mean/variance estimation, prior computation, and log-likelihood-based prediction.
+- **Milestone Presentation Materials (Canva):** Built the initial Milestone 1 Canva template and content, and contributed to the Milestone 2 Canva presentation.
+- **Data Splitting Fix (`data_loader.py`, `main.py`):** Changed the data splitting strategy from a single 80/20 split across all years to a per-year 80/20 split, and applied this fix across all methods, including updating the corresponding logic in `main.py`.
+- **GitHub Pages Backbone & Initial Content (`index.html`):** Created the foundation of the GitHub Pages site and wrote its initial content, including the Background, Dataset & Split, Methods, Results, and Links sections.
+- **Evaluation Metric Tables (Plotly):** Built Plotly tables displaying accuracy, precision, recall, and F1-score for the evaluated models.
 
 **Lawrence Andrew Maminta**
 
