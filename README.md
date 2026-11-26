@@ -61,6 +61,11 @@ python main.py
 ## Task Log of Members
 
 **Ken Kristoffer F. Enrile**
+- **Dataset Filtering (`filter_dataset.py`):** Implemented filtering of the PSA production dataset to retain the ten selected crops and regional records, exclude provincial and national totals and the Negros Island Region, and keep quarterly observations while removing semester and annual totals.
+- **Dataset Preparation (`data_loader.py`):** Built the initial data preparation module to clean crop and region records, parse quarterly production values, preserve zero values while skipping missing observations, compare each quarter with the same quarter of the previous year, assign binary production labels, and export the prepared dataset.
+- **Confusion Matrices (`main.py`, `results.js`, `script.js`, `index.html`, `style.css`):** Exported each model's accumulated confusion matrix and added tables showing actual versus predicted classes across all test years, with counts, row percentages, and colors distinguishing correct predictions from errors.
+- **Interactive Method Visualizers (`source_code/visualizers/`):** Created Plotly visualizations of Gaussian Naive Bayes feature distributions, KNN's nearest neighbors and voting, and the Perceptron's three-dimensional decision plane, using the existing 2025 training and test split.
+- **Shared Test-Record Selector & Chart Integration (`method_selector.js`, `main.py`, `plots.py`, `index.html`, `style.css`):** Added a crop-grouped selector that updates all three method charts to the same test record, connected chart generation to the evaluation pipeline, and adjusted chart layouts and iframe sizing for the project page.
 
 **Angelo Gabriel A. Ladines**  
 - **From-Scratch Gaussian Naive Bayes Implementation (`gaussian_naive_bayes.py`):** Implemented the Gaussian Naive Bayes classifier from scratch, including per-class mean/variance estimation, prior computation, and log-likelihood-based prediction.
