@@ -67,4 +67,8 @@ python main.py
 **Lawrence Andrew Maminta**
 
 **Arianne Marie R. Reyes**
-
+- **From-Scratch Model & Metric Implementation (`k_nearest_neighbor.py`, `gaussian_naive_bayes.py`):** Implemented the Minkowski/Euclidean K-Nearest Neighbors classifier from scratch, tuned the neighborhood hyperparameter (`k = 19`), and added evaluation metric calculations (`evaluate_gnb`) for Gaussian Naive Bayes.
+- **Unified Evaluation Pipeline (`main.py`) & Git Integration:** Built the `main.py` pipeline to run Gaussian Naive Bayes, KNN, and Perceptron across all evaluation years, resolved Perceptron output unpacking in `main.py`, and merged feature branches (`perceptron` into `milestone2`).
+- **Dataset Scope & Splitting (`filter_dataset.py`, `data_loader.py`):** Updated the train/test split configuration to 80/20 and excluded partial 2026 records to standardize the 15-year (2011–2025; 9,600-row) evaluation dataset.
+- **GitHub Pages UI & Dynamic Tables (`index.html`, `style.css`, `script.js`, `results.js`):** Styled the project page with updated typography and a green, yellow, and white theme (`style.css`), reorganized the layout of `index.html` for smoother section flow, and implemented dynamic yearly and 15-year summary table rendering via `results.js` and `script.js`.
+- **Technical Write-Up & Documentation (`index.html`):** Documented dataset-specific implementation details under Methods, expanded the Discussion (external climatic/economic factors and Perceptron convergence analysis), Conclusion, and References.
