@@ -32,6 +32,7 @@
       <li><a href="#problem">Background</a></li>
       <li><a href="#dataset">Dataset &amp; Split</a></li>
       <li><a href="#methods">Methods &amp; Setup</a></li>
+      <li><a href="#visualizers">Method Visualizers</a></li>
       <li><a href="#results">Results</a></li>
       <li><a href="#discussion">Discussion</a></li>
       <li><a href="#conclusion">Conclusion</a></li>
@@ -211,6 +212,21 @@
         It indicates how well the model detects increases in crop production.<br>Recall = TP / (TP + FN)</p>
       <p><strong>F1 score</strong> provides a combined measure of both Precision and Recall. This is useful for assessing the balance
          between identifying actual increases and avoiding incorrect increase predictions.<br>F1 score = (2 * Precision * Recall) / (Precision + Recall)</p>
+    </section>
+
+    <section id="visualizers">
+      <h2>Method Visualizers</h2>
+      <div class="method-selector">
+        <label for="method-record">Test record (2025)</label>
+        <select id="method-record" disabled><option>Loading test records...</option></select>
+        <p id="method-record-summary" class="note" role="status" aria-live="polite"></p>
+      </div>
+      <h3>Gaussian Naive Bayes</h3>
+      <div class="fig method-chart"><iframe src="tables_and_charts/gaussian_nb.html" title="Gaussian Naive Bayes distributions for 2025" loading="lazy"></iframe></div>
+      <h3>K-Nearest Neighbors</h3>
+      <div class="fig method-chart compact"><iframe src="tables_and_charts/knn.html" title="K-Nearest Neighbors for 2025" loading="lazy"></iframe></div>
+      <h3>Perceptron</h3>
+      <div class="fig method-chart compact"><iframe src="tables_and_charts/perceptron.html" title="Perceptron separating plane for 2025" loading="lazy"></iframe></div>
     </section>
 
     <!-- IV. RESULTS (SUMMARY & FINDINGS FIRST, THEN CHARTS, THEN FULL YEAR TABLE) -->
@@ -406,6 +422,7 @@
   </main>
   <script src="tables_and_charts/results.js"></script>
   <script src="script.js"></script>
+  <script src="method_selector.js"></script>
 </body>
 
 </html>

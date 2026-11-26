@@ -4,6 +4,7 @@
 
 import numpy as np
 import plots
+import visualizers
 import os
 import json
 from data_loader import prepare_dataset, save_prepared_dataset, split_per_year
@@ -180,6 +181,14 @@ def run_pipeline():
         print()
     
     plots.show_all(scores, confusion, class_counts)
+    visualizers.show_all(
+        data,
+        gnb_smoothing=GNB_K,
+        knn_k=KNN_K,
+        knn_p=KNN_P,
+        learning_rate=PERCEPTRON_LR,
+        max_epochs=PERCEPTRON_EPOCHS,
+    )
 
     # Export results for index.html (tables_and_charts/results.js)
     model_configs = {
