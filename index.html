@@ -104,6 +104,17 @@
       <h2>Methods</h2>
       <p>Each year from 2011 to 2025 is evaluated independently using the same deterministic 80/20 split (512 training and 128 testing records per year). Across all three classifiers, every regional crop quarter is represented by three continuous logarithmic features engineered from <code>dataset_prepared.csv</code>: (1) <strong>log previous-year same-quarter volume</strong>, <code>log(1 + prev_q)</code>; (2) <strong>prior year-over-year log change</strong> from the preceding year's matching quarter; and (3) <strong>prior quarter-over-quarter log change</strong> from the immediately preceding quarter (defaulting to <code>0.0</code> when earlier historical quarters are unavailable).</p>
 
+      <h3>Why We Chose These Methods</h3>
+      <p>K-Nearest Neighbors, Gaussian Naive Bayes, and Perceptron were selected because each algorithm uses a different approach to classification. This allows the study to compare how probabilistic, distance-based, and linear classification methods perform when predicting changes in vegetable and root crop production.</p>
+
+      <p><strong>K-Nearest Neighbors (KNN)</strong> was selected because it classifies records based on the labels of their nearest neighbors. This method helps determine whether crop-region records with similar historical production patterns also have similar production outcomes.</p> 
+
+      <p><strong>Gaussian Naive Bayes (GNB)</strong> was chosen because it uses probability to classify records based on their features. It provides a relatively simple and efficient approach for examining how historical production patterns relate to increases or decreases in production.</p>
+
+      <p><strong>Perceptron</strong> was included to evaluate a linear classification approach. It learns by adjusting its weights and bias based on classification errors, which allows the study to examine whether a linear decision boundary can distinguish between production increases and decreases.</p>
+
+      <p>Comparing these three algorithms provides a way to examine how different classification approaches handle patterns in the historical agricultural dataset and identify their respective strengths and limitations.</p>
+
       <h3>K-Nearest Neighbors (KNN)</h3>
       <p>In our implementation (<code>k_nearest_neighbor.py</code>), KNN classifies each test crop-region quarter by comparing its recent production scale and growth trajectory against historical records within the same evaluation year:</p>
       <ul>
